@@ -1,4 +1,4 @@
-const grid_length = 64;
+const grid_length = 256;
 const workgroup_size = 16;
 
 const requestDevice = async (): Promise<[GPUAdapter, GPUDevice] | null> => {
@@ -152,7 +152,7 @@ const main = async () => {
     const [vertexBuffer, vertexBufferLayout] = await getVertexBuffer(device);
     const states = new Uint32Array(grid_length * grid_length);
     for(let i = 0; i < grid_length * grid_length; i++) {
-        states[i] = Math.random() > 0.25 ? 0 : 1;
+        states[i] = Math.random() > 0.5 ? 0 : 1;
     }
     const statesStorageBuffer = [
         device.createBuffer({
@@ -250,7 +250,7 @@ const main = async () => {
         render(step);
         step++;
         step = step % 2;
-    }, 500);
+    }, 100);
 }
 
 main()
