@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + TS</title>
+    <script type="module">
+      (function(){const t=document.createElement("link").relList;if(t&&t.supports&&t.supports("modulepreload"))return;for(const e of document.querySelectorAll('link[rel="modulepreload"]'))i(e);new MutationObserver(e=>{for(const n of e)if(n.type==="childList")for(const u of n.addedNodes)u.tagName==="LINK"&&u.rel==="modulepreload"&&i(u)}).observe(document,{childList:!0,subtree:!0});function o(e){const n={};return e.integrity&&(n.integrity=e.integrity),e.referrerPolicy&&(n.referrerPolicy=e.referrerPolicy),e.crossOrigin==="use-credentials"?n.credentials="include":e.crossOrigin==="anonymous"?n.credentials="omit":n.credentials="same-origin",n}function i(e){if(e.ep)return;e.ep=!0;const n=o(e);fetch(e.href,n)}})();const r=256,b=16,S=async()=>{const s=await navigator.gpu.requestAdapter();if(!s)return console.error("WebGPU not supported"),null;const t=await s.requestDevice();return console.log(t),[s,t]},U=async s=>{const o=document.getElementById("app").getContext("webgpu"),i=navigator.gpu.getPreferredCanvasFormat();return o.configure({device:s,format:i}),[o,i]},M=async s=>s.createShaderModule({label:"shader",code:`
+            @group(0) @binding(0) var<storage> states: array<u32>;
+
+            struct VertexOutput {
+                @builtin(position) pos: vec4f,
+                @location(0) cell: u32,
+            };
+
+            @vertex
+            fn vertexMain(@location(0) pos: vec2f, @builtin(vertex_index) vertexIndex: u32) -> VertexOutput {
+                var output: VertexOutput;
+                output.pos = vec4<f32>(pos, 0.0, 1.0);
+                output.cell = vertexIndex / 6;
+                return output;
+            }
+            @fragment
+            fn fragmentMain(input: VertexOutput) -> vec4<f32> {
+                if(states[input.cell] == 0u) {
+                    discard;
+                }
+                return vec4<f32>(1.0, 1.0, 0.0, 1.0);
+            }
+        `}),w=async s=>{const t=s.createBuffer({size:r*r*4*12,usage:GPUBufferUsage.VERTEX|GPUBufferUsage.COPY_DST,mappedAtCreation:!0}),o=new Float32Array(r*r*12),i=2/r,e=i/6;for(let u=0;u<r;u++)for(let f=0;f<r;f++){const c=-1+u*i,l=1-f*i,d=c+i,g=l-i,a=(u*r+f)*12;o[a]=c+e,o[a+1]=l-e,o[a+2]=d-e,o[a+3]=l-e,o[a+4]=c+e,o[a+5]=g+e,o[a+6]=c+e,o[a+7]=g+e,o[a+8]=d-e,o[a+9]=l-e,o[a+10]=d-e,o[a+11]=g+e}new Float32Array(t.getMappedRange()).set(o);const n={arrayStride:8,attributes:[{format:"float32x2",offset:0,shaderLocation:0}]};return t.unmap(),[t,n]},O=async s=>s.createShaderModule({label:"computation shader",code:`
+            @group(0) @binding(0) var<storage> states: array<u32>;
+            @group(0) @binding(1) var<storage, read_write> next_states: array<u32>;
+
+            @compute
+            @workgroup_size(${b}, ${b})
+            fn computeMain(@builtin(global_invocation_id) cell: vec3u) {
+                let index = cell.x * ${r} + cell.y;
+                var count = 0u;
+                for(var i: i32 = -1; i < 2; i++) {
+                    for(var j: i32 = -1; j < 2; j++) {
+                        if(i == 0 && j == 0) {
+                            continue;
+                        }
+                        let x = i32(cell.x) + i;
+                        let y = i32(cell.y) + j;
+                        if(x >= 0 && x < ${r} && y >= 0 && y < ${r}) {
+                            count += states[x * ${r} + y];
+                        }
+                    }
+                }
+                if(states[index] == 1u) {
+                    if(count < 2u || count > 3u) {
+                        next_states[index] = 0u;
+                    } else {
+                        next_states[index] = 1u;
+                    }
+                } else {
+                    if(count == 3u) {
+                        next_states[index] = 1u;
+                    } else {
+                        next_states[index] = 0u;
+                    }
+                }
+            }
+        `}),C=async()=>{const[s,t]=await S(),[o,i]=await U(t),e=await M(t),[n,u]=await w(t),f=new Uint32Array(r*r);for(let p=0;p<r*r;p++)f[p]=Math.random()>.5?0:1;const c=[t.createBuffer({size:r*r*4,usage:GPUBufferUsage.STORAGE|GPUBufferUsage.COPY_DST}),t.createBuffer({size:r*r*4,usage:GPUBufferUsage.STORAGE|GPUBufferUsage.COPY_DST})];t.queue.writeBuffer(c[0],0,f.buffer);const l=t.createBindGroupLayout({entries:[{binding:0,visibility:GPUShaderStage.FRAGMENT|GPUShaderStage.COMPUTE|GPUShaderStage.VERTEX,buffer:{type:"read-only-storage"}},{binding:1,visibility:GPUShaderStage.FRAGMENT|GPUShaderStage.COMPUTE,buffer:{type:"storage"}}]}),d=t.createPipelineLayout({bindGroupLayouts:[l]}),g=t.createRenderPipeline({label:"pipeline",layout:d,vertex:{module:e,entryPoint:"vertexMain",buffers:[u]},fragment:{module:e,entryPoint:"fragmentMain",targets:[{format:i}]}}),a=await O(t),_=t.createComputePipeline({layout:d,compute:{module:a,entryPoint:"computeMain"}}),B=async p=>{const v=t.createCommandEncoder(),P=t.createBindGroup({label:"bind group",layout:l,entries:[{binding:0,resource:{buffer:c[p%2]}},{binding:1,resource:{buffer:c[(p+1)%2]}}]}),y=v.beginRenderPass({colorAttachments:[{view:o.getCurrentTexture().createView(),loadOp:"clear",clearValue:{r:.1,g:.3,b:.6,a:1},storeOp:"store"}]});y.setPipeline(g),y.setBindGroup(0,P),y.setVertexBuffer(0,n),y.draw(r*r*6),y.end();const x=v.beginComputePass();x.setPipeline(_),x.setBindGroup(0,P);const h=Math.floor(r/b);x.dispatchWorkgroups(h,h),x.end();const G=v.finish();t.queue.submit([G])};let m=0;setInterval(()=>{B(m),m++,m=m%2},100)};C();
+    </script>
+  </head>
+  <body>
+    <canvas id="app" width="800vh" height="800vh"></canvas>
+  </body>
+</html>

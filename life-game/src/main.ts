@@ -1,4 +1,4 @@
-const grid_length = 256;
+const grid_length = 128;
 const workgroup_size = 16;
 
 const requestDevice = async (): Promise<[GPUAdapter, GPUDevice] | null> => {
@@ -28,10 +28,13 @@ const getShaderModule = async (device: GPUDevice): Promise<GPUShaderModule> => {
         label: "shader",
         code: `
             @group(0) @binding(0) var<storage> states: array<u32>;
+            @group(0) @binding(2) var grass_texture: texture_2d<f32>;
+            @group(0) @binding(3) var grass_sampler: sampler;
 
             struct VertexOutput {
                 @builtin(position) pos: vec4f,
-                @location(0) cell: u32,
+                @location(0) @interpolate(flat) cell: u32,
+                @location(1) texCoord: vec2<f32>,
             };
 
             @vertex
@@ -39,14 +42,24 @@ const getShaderModule = async (device: GPUDevice): Promise<GPUShaderModule> => {
                 var output: VertexOutput;
                 output.pos = vec4<f32>(pos, 0.0, 1.0);
                 output.cell = vertexIndex / 6;
+                if(vertexIndex % 6 == 0) {
+                    output.texCoord = vec2<f32>(0.0, 0.0);
+                } else if(vertexIndex % 6 == 1 || vertexIndex % 6 == 4) {
+                    output.texCoord = vec2<f32>(1.0, 0.0);
+                } else if(vertexIndex % 6 == 2 || vertexIndex % 6 == 3) {
+                    output.texCoord = vec2<f32>(0.0, 1.0);
+                } else {
+                    output.texCoord = vec2<f32>(1.0, 1.0);
+                }
                 return output;
             }
+                
             @fragment
-            fn fragmentMain(input: VertexOutput) -> vec4<f32> {
+            fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
                 if(states[input.cell] == 0u) {
                     discard;
                 }
-                return vec4<f32>(1.0, 1.0, 0.0, 1.0);
+                return textureSample(grass_texture, grass_sampler, input.texCoord);
             }
         `
     });
@@ -143,28 +156,8 @@ const getComputationShaderModule = async (device: GPUDevice): Promise<GPUShaderM
         `
     });
 }
-    
 
-const main = async () => {
-    const [_, device] = (await requestDevice())!;
-    const [context, canvasFormat] = await getContext(device);
-    const shaderModule = await getShaderModule(device);
-    const [vertexBuffer, vertexBufferLayout] = await getVertexBuffer(device);
-    const states = new Uint32Array(grid_length * grid_length);
-    for(let i = 0; i < grid_length * grid_length; i++) {
-        states[i] = Math.random() > 0.5 ? 0 : 1;
-    }
-    const statesStorageBuffer = [
-        device.createBuffer({
-            size: grid_length * grid_length * 4,
-            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-        }),
-        device.createBuffer({
-            size: grid_length * grid_length * 4,
-            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-        })
-    ]
-    device.queue.writeBuffer(statesStorageBuffer[0], 0, states.buffer);
+const getBindGroupLayout = async (device: GPUDevice): Promise<GPUBindGroupLayout> => {
     const bindGroupLayout = device.createBindGroupLayout({
         entries: [{
             binding: 0,
@@ -178,11 +171,80 @@ const main = async () => {
             buffer: {
                 type: "storage"
             }
+        }, {
+            binding: 2,
+            visibility: GPUShaderStage.FRAGMENT,
+            texture: {}
+        }, {
+            binding: 3,
+            visibility: GPUShaderStage.FRAGMENT,
+            sampler: {}
         }]
     });
+    return bindGroupLayout;
+}
+    
+const initializeState = async(): Promise<Uint32Array> => {
+    const states = new Uint32Array(grid_length * grid_length);
+
+    for(let i = 0; i < grid_length * grid_length; i++) {
+        states[i] = Math.random() > 0.5 ? 0 : 1;
+    }
+    return states;
+}
+
+const loadTextureBitmap = async (): Promise<ImageBitmap> => {
+    const response = await fetch("texture.jpg");
+    const blob = await response.blob();
+    return await createImageBitmap(blob);
+}
+
+const getSampler = (device: GPUDevice): GPUSampler => {
+    return device.createSampler({
+        magFilter: "linear",
+        minFilter: "linear",
+    });
+}
+
+const main = async () => {
+    const [_, device] = (await requestDevice())!;
+    const sampler = getSampler(device);
+    const bitmap = await loadTextureBitmap();
+    const texture = device.createTexture({
+        label: "grass",
+        format: 'rgba8unorm',
+        size: [bitmap.width, bitmap.height],
+        usage: GPUTextureUsage.TEXTURE_BINDING |
+               GPUTextureUsage.COPY_DST |
+               GPUTextureUsage.RENDER_ATTACHMENT,
+    });
+    device.queue.copyExternalImageToTexture(
+        { source: bitmap, flipY: true },
+        { texture },
+        { width: bitmap.width, height: bitmap.height },
+    );
+
+    const [context, canvasFormat] = await getContext(device);
+    const shaderModule = await getShaderModule(device);
+    const [vertexBuffer, vertexBufferLayout] = await getVertexBuffer(device);
+    
+    const statesStorageBuffer = [
+        device.createBuffer({
+            size: grid_length * grid_length * 4,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+        }),
+        device.createBuffer({
+            size: grid_length * grid_length * 4,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+        })
+    ]
+    const states = await initializeState();
+    device.queue.writeBuffer(statesStorageBuffer[0], 0, states.buffer);
+    const bindGroupLayout = await getBindGroupLayout(device);
     const pipelineLayout = device.createPipelineLayout({
         bindGroupLayouts: [bindGroupLayout]
     });
+
     const pipeline = device.createRenderPipeline({
         label: "pipeline",
         layout: pipelineLayout,
@@ -207,6 +269,7 @@ const main = async () => {
             entryPoint: "computeMain"
         }
     });
+
     const render = async (step: number) => {
         const encoder = device.createCommandEncoder();
         const bindGroup = device.createBindGroup({
@@ -218,6 +281,12 @@ const main = async () => {
             }, {
                 binding: 1,
                 resource: { buffer: statesStorageBuffer[(step + 1) % 2] },
+            }, {
+                binding: 2,
+                resource: texture.createView(),
+            }, {
+                binding: 3,
+                resource: sampler,
             }]
         });
         
@@ -225,7 +294,7 @@ const main = async () => {
             colorAttachments: [{
                 view: context.getCurrentTexture().createView(),
                 loadOp: "clear",
-                clearValue: { r: 0.1, g: 0.3, b: 0.6, a: 1.0 },
+                clearValue: { r: 0.2, g: 0.2, b: 0.2, a: 1.0 },
                 storeOp: "store",
             }]
         });
@@ -250,7 +319,7 @@ const main = async () => {
         render(step);
         step++;
         step = step % 2;
-    }, 100);
+    }, 10);
 }
 
 main()
