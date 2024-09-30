@@ -2,10 +2,6 @@
 
 This is a series of tutorial about computer graphics and WebGPU.
 
-## Overture
-
-[Overture](./notes/00.md)
-
 ## 2D Basics
 
 In this section, we learn about the basic concepts of computer graphics and WebGPU.
