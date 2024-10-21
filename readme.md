@@ -48,4 +48,4 @@ This part familiarize you with OBJ file format and how to load 3D models.
 
 Next part is about curves and surfaces.
 
-9. [Bézier Curve, B-spline Curve, and Surface](./notes/9.md)
+9. [Bézier Curve, B-spline Curve, and Surface](./notes/09.md)
