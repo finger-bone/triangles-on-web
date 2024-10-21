@@ -2,6 +2,16 @@
 
 This is a series of tutorial about computer graphics and WebGPU.
 
+## What You Can Build
+
+![Life Game](showcases/01.gif)
+
+![Render a Cube](showcases/02.gif)
+
+![Still a Cube But With Lighting](showcases/03.gif)
+
+![Render an Actual 3D Model](showcases/04.gif)
+
 ## 2D Basics
 
 In this section, we learn about the basic concepts of computer graphics and WebGPU.
@@ -38,5 +48,4 @@ This part familiarize you with OBJ file format and how to load 3D models.
 
 Next part is about curves and surfaces.
 
-9. [B-spline Curve](./notes/9.md)
-10. [Bezier Surface](./notes/10.md)
+9. [Bézier Curve, B-spline Curve, and Surface](./notes/9.md)
