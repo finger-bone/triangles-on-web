@@ -1,0 +1,30 @@
+site_name: Introduction to WebGPU
+site_url: https://finger-bone.github.io/triangles-on-web/
+site_description: A simple introduction to WebGPU
+
+theme:
+  name: lux
+  font:
+    text: Inter
+    code: Fira Code
+
+docs_dir: notes
+
+nav:
+- 2D Basics:
+  - Basic Setup: 01.md
+  - Life Game: 02.md
+  - Texture: 03.md
+- 3D Basics:
+  - Orthographic Projection: 04.md
+  - Perspective Projection: 05.md
+  - Lighting: 06.md
+- WGSL: 07.md
+- 3D Models: 08.md
+- Curves and Surfaces: 09.md
+
+extra_javascript:
+- https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML
+markdown_extensions:
+  mdx_math:
+    enable_dollar_delimiter: true
