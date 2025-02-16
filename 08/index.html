@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        <link rel="canonical" href="https://finger-bone.github.io/triangles-on-web/08/">
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>3D Models - Introduction to WebGPU</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/color-brewer.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="..">Introduction to WebGPU</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">2D Basics <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../01/" class="dropdown-item">Basic Setup</a>
+</li>
+                                    
+<li>
+    <a href="../02/" class="dropdown-item">Life Game</a>
+</li>
+                                    
+<li>
+    <a href="../03/" class="dropdown-item">Texture</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">3D Basics <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../04/" class="dropdown-item">Orthographic Projection</a>
+</li>
+                                    
+<li>
+    <a href="../05/" class="dropdown-item">Perspective Projection</a>
+</li>
+                                    
+<li>
+    <a href="../06/" class="dropdown-item">Lighting</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="navitem">
+                                <a href="../07/" class="nav-link">WGSL</a>
+                            </li>
+                            <li class="navitem active">
+                                <a href="./" class="nav-link">3D Models</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../09/" class="nav-link">Curves and Surfaces</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../07/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../09/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-level="1"><a href="#triangles-on-web-ch8-obj-model" class="nav-link">Triangles on Web Ch8 OBJ Model</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#parsing-obj-file" class="nav-link">Parsing OBJ File</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#show-the-model" class="nav-link">Show the Model</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#apply-texture" class="nav-link">Apply Texture</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="triangles-on-web-ch8-obj-model">Triangles on Web Ch8 OBJ Model</h1>
+<p>Previously we manually set the vertices and indices of the triangle. However, in real-world applications, we usually use a 3D modeling software to create the models. The models are usually saved in a file format, and the most common file format is the OBJ file format.</p>
+<p>In this chapter, we will talk about the OBJ file format and how to load the models from the OBJ file format.</p>
+<h2 id="parsing-obj-file">Parsing OBJ File</h2>
+<p>Of course, you don't want to parse the OBJ file manually. I'd recommend <a href="https://www.npmjs.com/package/obj-file-parser">this library</a> to parse the OBJ file.</p>
+<p>Actually, after writing this tutorial, I found that library was not, well, good enough for all cases. So I wrote one myself, called <code>obj-model-parser</code>. If you consider using that, you can find it <a href="https://www.npmjs.com/package/obj-model-parser">here</a>.</p>
+<p>If you are using my library, simply call the <code>parseObj</code> function, and you will get something that containing the following structure,</p>
+<pre><code class="language-typescript">{
+    objects: [
+        {
+            name: string | undefined;
+            groups: {
+                groupNames: string[] | undefined;
+                componentsChunks: {
+                    polygons: (d.Polygon | d.Line | d.Face)[];
+                };
+            }[];
+        }
+    ]
+}
+</code></pre>
+<p>All you need is the polygons. Also, if you like this one (or maybe this tutorial), consider giving me a star on <a href="https://github.com/finger-bone/obj-model-parser">github</a>, I'll appreciate that.</p>
+<p>Anyways, let's back to our tutorial.</p>
+<p>First, let's copy our previous lighting demo- we don't want to write them all over again. Then install this for loading the obj file.</p>
+<pre><code class="language-bash">bun install obj-file-parser-ts
+</code></pre>
+<p>Then let's just get a random obj file from the internet. I found <a href="https://free3d.com/3d-model/bird-v1--875504.html">this bird</a> and download it. Please put it into the static assets, the <code>public</code> folder if you used vite. Do not change the file name because the <code>mtl</code> file has the information about the material based on the file name.</p>
+<p>Then we can write the code to load the obj file.</p>
+<pre><code class="language-typescript">import ObjFileParser from &quot;obj-file-parser&quot;;
+
+const objFile = await fetch(&quot;bird/12213_Bird_v1_l3.obj&quot;).then((res) =&gt; res.text());
+const model = new ObjFileParser(objFile).parse();
+console.log(model);
+</code></pre>
+<p>The parsed result is like,</p>
+<pre><code class="language-typescript">{
+  models: [
+    {
+      name: 'unit_cube',
+      vertices: [
+        { x: 1.0, 2.0, 3.0 },
+        ...
+      ],
+      textureCoords: [
+        { u: 1.0, v: 2.0, w: 3.0 },
+        ...
+      ],
+      vertexNormals: [
+        { x: 1.0, y: 2.0, z: 3.0 },
+        ...
+      ],
+      faces: [
+        {
+          material: 'brick',
+          group: 'group1',
+          smoothingGroup: 0,
+          vertices: [
+            { vertexIndex: 1, textureCoordsIndex: 1, vertexNormalIndex: 1 },
+            ...
+          ]
+        }
+      ]
+    },
+    {
+      ...
+    }
+  ],
+
+  materialLibraries: [
+    'mat_lib1.mtl',
+    ...
+  ]
+}
+</code></pre>
+<ul>
+<li>materialLibraries: The material library file names. We will talk about textures later.</li>
+<li>models: The models in the obj file. Each model has vertices, textureCoords, vertexNormals, and faces. Each face consists of many vertices, and each of such vertices has the indices for vertices position, textureCoords, and vertexNormals.</li>
+</ul>
+<p>That is to say, we should first, change our code to,</p>
+<pre><code class="language-typescript">import ObjFileParser from &quot;obj-file-parser&quot;;
+
+const objFile = await fetch(&quot;bird/12213_Bird_v1_l3.obj&quot;).then((res) =&gt; res.text());
+const model = new ObjFileParser(objFile).parse().models[0];
+</code></pre>
+<p>Remember previously we have a <code>get_vertices</code> function that returns the vertices and normals? We just change that to,</p>
+<pre><code class="language-typescript">const get_vertices = (device: GPUDevice, model: ObjFileParser.ObjModel): [GPUBuffer, GPUVertexBufferLayout] =&gt; {
+
+
+    const layout: GPUVertexBufferLayout = {
+        arrayStride: 3 * 4 * 2,
+        attributes: [{
+            format: &quot;float32x3&quot;,
+            offset: 0,
+            shaderLocation: 0,
+        }, {
+            format: &quot;float32x3&quot;,
+            offset: 3 * 4,
+            shaderLocation: 1
+        }]
+    }
+    const buffer = device.createBuffer({
+        size: verticesWithNormals.length * 4,
+        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+    })
+    device.queue.writeBuffer(buffer, 0, verticesWithNormals.buffer);
+    return [buffer, layout];
+}
+</code></pre>
+<h2 id="show-the-model">Show the Model</h2>
+<p>Now we need to replace the <code>verticesWithNormals</code> with the data from the obj file. We can do this by,</p>
+<pre><code class="language-typescript">const get_vertices = (device: GPUDevice, model: ObjFileParser.ObjModel): [GPUBuffer, GPUVertexBufferLayout] =&gt; {
+    const verticesWithNormals = new Float32Array(model.faces.length * 3 * 2 * 3);
+    for (let i = 0; i &lt; model.faces.length; i++) {
+        const face = model.faces[i];
+        for (let j = 0; j &lt; 3; j++) {
+            const vertex = model.vertices[face.vertices[j].vertexIndex - 1];
+            const normal = model.vertexNormals[face.vertices[j].vertexNormalIndex - 1];
+            verticesWithNormals.set([vertex.x, vertex.y, vertex.z], (i * 3 + j) * 6);
+            verticesWithNormals.set([normal.x, normal.y, normal.z], (i * 3 + j) * 6 + 3);
+        }
+    }
+
+    const layout: GPUVertexBufferLayout = {
+        arrayStride: 3 * 4 * 2,
+        attributes: [{
+            format: &quot;float32x3&quot;,
+            offset: 0,
+            shaderLocation: 0,
+        }, {
+            format: &quot;float32x3&quot;,
+            offset: 3 * 4,
+            shaderLocation: 1
+        }]
+    }
+    const buffer = device.createBuffer({
+        size: verticesWithNormals.length * 4,
+        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+    })
+    device.queue.writeBuffer(buffer, 0, verticesWithNormals.buffer);
+    return [buffer, layout];
+}
+</code></pre>
+<p>Please note that the index of obj file starts from 1, so we need to minus 1 to get the correct index.</p>
+<p>Lastly, change the count of the draw call to <code>model.faces.length * 3</code>.</p>
+<p>Now you should see something on the screen- but if you used the same model as me, you will see that there are missing triangles- this is because the model uses square primitives.</p>
+<p>To fix this, there is no significant changes (thank god). Similar as before, we just break squares into two triangles.</p>
+<pre><code class="language-typescript">const get_vertices = (device: GPUDevice, model: ObjFileParser.ObjModel): [GPUBuffer, GPUVertexBufferLayout] =&gt; {
+    const verticesWithNormals = new Float32Array(model.faces.length * 2 * 3 * 2 * 3);
+    let groupOffset = model.faces.length * 2 * 3 * 3;
+    for (let i = 0; i &lt; model.faces.length; i++) {
+        const face = model.faces[i];
+
+        const firstGroup = [
+            face.vertices[0],
+            face.vertices[1],
+            face.vertices[2]
+        ]
+
+        const secondGroup = [
+            face.vertices[0],
+            face.vertices[2],
+            face.vertices[3],
+        ]
+
+        for (let j = 0; j &lt; 3; j++) {
+            const vertex = model.vertices[firstGroup[j].vertexIndex - 1];
+            const normal = model.vertexNormals[firstGroup[j].vertexNormalIndex - 1];
+            verticesWithNormals.set([vertex.x, vertex.y, vertex.z], (i * 3 + j) * 6);
+            verticesWithNormals.set([normal.x, normal.y, normal.z], (i * 3 + j) * 6 + 3);
+        }
+
+        for (let j = 0; j &lt; 3; j++) {
+            const vertex = model.vertices[secondGroup[j].vertexIndex - 1];
+            const normal = model.vertexNormals[secondGroup[j].vertexNormalIndex - 1];
+            verticesWithNormals.set([vertex.x, vertex.y, vertex.z], (i * 3 + j) * 6 + groupOffset);
+            verticesWithNormals.set([normal.x, normal.y, normal.z], (i * 3 + j) * 6 + 3 + groupOffset);
+        }
+    }
+
+    const layout: GPUVertexBufferLayout = {
+        arrayStride: 3 * 4 * 2,
+        attributes: [{
+            format: &quot;float32x3&quot;,
+            offset: 0,
+            shaderLocation: 0,
+        }, {
+            format: &quot;float32x3&quot;,
+            offset: 3 * 4,
+            shaderLocation: 1
+        }]
+    }
+    const buffer = device.createBuffer({
+        size: verticesWithNormals.length * 4,
+        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+    })
+    device.queue.writeBuffer(buffer, 0, verticesWithNormals.buffer);
+    return [buffer, layout];
+}
+</code></pre>
+<p>Now you can see the model- but it's a bit too big. It is simple- we just move the camera a bit or scale- whichever you prefer.</p>
+<pre><code class="language-wgsl"> let rotated = vec4&lt;f32&gt;(rotation * 0.1 * (position - vec3f(0.0, 0.0, 0.5)), 1.0);
+ ```
+
+This will do the work. The `0.5` is for showing the whole model- or else the model will be clipped by the near plane.
+
+However, the axis doesn't seem right- currently it is a top view, we generally want a front view. We can just swap the `z` and `y` axis in the vertices reading to solve this- also flip the y. The following code will do the work,
+
+```typescript
+for (let j = 0; j &lt; 3; j++) {
+    const vertex = model.vertices[firstGroup[j].vertexIndex - 1];
+    const normal = model.vertexNormals[firstGroup[j].vertexNormalIndex - 1];
+    verticesWithNormals.set([vertex.x, -vertex.z, vertex.y], (i * 3 + j) * 6);
+    verticesWithNormals.set([normal.x, -normal.z, normal.y], (i * 3 + j) * 6 + 3);
+}
+
+for (let j = 0; j &lt; 3; j++) {
+    const vertex = model.vertices[secondGroup[j].vertexIndex - 1];
+    const normal = model.vertexNormals[secondGroup[j].vertexNormalIndex - 1];
+    verticesWithNormals.set([vertex.x, -vertex.z, vertex.y], (i * 3 + j) * 6 + groupOffset);
+    verticesWithNormals.set([normal.x, -normal.z, normal.y], (i * 3 + j) * 6 + 3 + groupOffset);
+}
+</code></pre>
+<p>Now you should see a bird model successfully loaded on the screen.</p>
+<h2 id="apply-texture">Apply Texture</h2>
+<p>We need to first, of course, load the texture. Texture resources are defined by <code>mtl</code> file, we also need to parse that. </p>
+<p>Sadly, I haven't found any appropriate library for parsing the <code>mtl</code> file, (there I found one but it is not working), so, whatever, guess we just have to parse it manually.</p>
+<p>Likely, like obj file, mtl file is also pure text. You can just open in whatever text editor and see the content. The content is like,</p>
+<pre><code># 3ds Max Wavefront OBJ Exporter v0.97b - (c)2007 guruware
+# File Created: 08.12.2011 13:29:39
+
+newmtl 12213_bird
+    Ns 10.0000
+    Ni 1.5000
+    d 1.0000
+    Tr 0.0000
+    Tf 1.0000 1.0000 1.0000 
+    illum 2
+    Ka 1.0000 1.0000 1.0000
+    Kd 1.0000 1.0000 1.0000
+    Ks 0.0000 0.0000 0.0000
+    Ke 0.0000 0.0000 0.0000
+    map_Ka 12213_bird_diffuse.jpg
+    map_Kd 12213_bird_diffuse.jpg
+    map_bump Map__7_Normal Bump.jpg
+</code></pre>
+<p>Let's explain the content. So basically, it's kind of like yaml. <code>newmtl 12213_bird</code> declares a new material, and the following lines under indentation are the properties of the material.</p>
+<p><code>Ns</code> is the shininess of the material, <code>Ni</code> is the optical density, <code>d</code> is the dissolve factor, <code>Tr</code> is the transparency factor, <code>Tf</code> is the transmission filter, <code>illum</code> is the illumination model, <code>Ka</code> is the ambient color, <code>Kd</code> is the diffuse color, <code>Ks</code> is the specular color, <code>Ke</code> is the emission color.</p>
+<p>We don't really care about them- since we have only built one lighting model. What's important is only <code>map_Kd</code>- which are the ambient and diffuse textures.</p>
+<p><code>map_bump</code> is the bump map- which is kind of too complex. Basically, such texture allows to simulate small bumps on the surface. We don't really care about it right now.</p>
+<p>So, that all said, we only need to find <code>map_Kd</code> and load them. We can do this by,</p>
+<pre><code class="language-typescript">const parseMtl = (mtl: string) =&gt; {
+    const ret = []
+
+    for (const line of mtl.split(&quot;\r\n&quot;)) {
+        const tokens = line.trim().split(&quot; &quot;);
+        if (tokens[0] === &quot;newmtl&quot;) {
+            ret.push({
+                name: tokens[1],
+                map_Kd: &quot;&quot;,
+            })
+        }
+        if (tokens[0] === &quot;map_Kd&quot;) {
+            ret[ret.length - 1].map_Kd = tokens.slice(1).join(&quot; &quot;);
+        }
+    }
+    return ret;
+}
+</code></pre>
+<p>Yeah, this code is shit, but it works whatever.</p>
+<p>Now let's check the faces properties of our model once again, </p>
+<pre><code class="language-typescript">faces: [
+    {
+        material: 'brick',
+        group: 'group1',
+        smoothingGroup: 0,
+        vertices: [
+            { vertexIndex: 1, textureCoordsIndex: 1, vertexNormalIndex: 1 },
+            ...
+        ]
+    }
+]
+</code></pre>
+<p>Now it's obvious- we just need to use the same material as this <code>material</code> field here.</p>
+<p>Since in our file, we only have one texture- so I'll just use load one. If you have multiple, do them one by one.</p>
+<p>Do you still remember how to load the texture?</p>
+<pre><code class="language-typescript">const get_texture = async (device: GPUDevice, url: string): Promise&lt;GPUTexture&gt; =&gt; {
+    const img = await fetch(url).then((res) =&gt; res.blob()).then((blob) =&gt; createImageBitmap(blob));
+    const bitmap = await createImageBitmap(img);
+    const texture = device.createTexture({
+        size: [bitmap.width, bitmap.height, 1],
+        format: &quot;rgba8unorm&quot;,
+        usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING,
+    });
+    device.queue.copyExternalImageToTexture({ source: bitmap }, { texture }, [bitmap.width, bitmap.height, 1]);
+    return texture;
+}
+</code></pre>
+<p>We also need a sampler,</p>
+<pre><code class="language-typescript">const get_sampler = (device: GPUDevice): GPUSampler =&gt; {
+    return device.createSampler({
+        magFilter: &quot;linear&quot;,
+        minFilter: &quot;linear&quot;,
+    })
+}
+</code></pre>
+<p>How to pass the texture to the shader? We need to use the <code>texture</code> and <code>sampler</code> binding.</p>
+<pre><code class="language-typescript">const get_texture_bind_group = (device: GPUDevice, texture: GPUTexture, sampler: GPUSampler): [GPUBindGroup, GPUBindGroupLayout] =&gt; {
+    const layout = device.createBindGroupLayout({
+        entries: [{
+            binding: 0,
+            visibility: GPUShaderStage.FRAGMENT,
+            texture: {
+                sampleType: &quot;float&quot;,
+            }
+        }, {
+            binding: 1,
+            visibility: GPUShaderStage.FRAGMENT,
+            sampler: {}
+        }]
+    });
+    const bindGroup = device.createBindGroup({
+        layout: layout,
+        entries: [{
+            binding: 0,
+            resource: texture.createView()
+        }, {
+            binding: 1,
+            resource: sampler,
+        }]
+    });
+    return [bindGroup, layout];
+}
+</code></pre>
+<pre><code class="language-typescript">const pipelineLayout = device.createPipelineLayout({
+    bindGroupLayouts: [bindGroupLayout, textureBindGroupLayout]
+});
+</code></pre>
+<pre><code class="language-typescript">pass.setBindGroup(1, textureBindGroup);
+</code></pre>
+<p>Now, for each vertex, we need to pass it's position, normal, and texture coordinates.</p>
+<pre><code class="language-typescript">const get_vertices = (device: GPUDevice, model: ObjFileParser.ObjModel): [GPUBuffer, GPUVertexBufferLayout] =&gt; {
+    const verticesWithNormals = new Float32Array(model.faces.length * 2 * 3 * 3 * 3);
+    let groupOffset = model.faces.length * 3 * 3 * 3;
+    for (let i = 0; i &lt; model.faces.length; i++) {
+        const face = model.faces[i];
+        const firstGroup = [
+            face.vertices[0],
+            face.vertices[1],
+            face.vertices[2]
+        ]
+
+        const secondGroup = [
+            face.vertices[0],
+            face.vertices[2],
+            face.vertices[3],
+        ]
+
+        for (let j = 0; j &lt; 3; j++) {
+            const vertex = model.vertices[firstGroup[j].vertexIndex - 1];
+            const normal = model.vertexNormals[firstGroup[j].vertexNormalIndex - 1];
+            const tex = model.textureCoords[firstGroup[j].textureCoordsIndex - 1];
+            verticesWithNormals.set([vertex.x, -vertex.z, vertex.y], (i * 3 + j) * 9);
+            verticesWithNormals.set([normal.x, -normal.z, normal.y], (i * 3 + j) * 9 + 3);
+            verticesWithNormals.set([tex.u, tex.v, tex.w], (i * 3 + j) * 9 + 6);
+        }
+
+        for (let j = 0; j &lt; 3; j++) {
+            const vertex = model.vertices[secondGroup[j].vertexIndex - 1];
+            const normal = model.vertexNormals[secondGroup[j].vertexNormalIndex - 1];
+            const tex = model.textureCoords[secondGroup[j].textureCoordsIndex - 1];
+            verticesWithNormals.set([vertex.x, -vertex.z, vertex.y], groupOffset + (i * 3 + j) * 9);
+            verticesWithNormals.set([normal.x, -normal.z, normal.y], groupOffset + (i * 3 + j) * 9 + 3);
+            verticesWithNormals.set([tex.u, tex.v, tex.w], groupOffset + (i * 3 + j) * 9 + 6);
+        }
+    }
+
+    const layout: GPUVertexBufferLayout = {
+        arrayStride: 3 * 4 * 3,
+        attributes: [{
+            format: &quot;float32x3&quot;,
+            offset: 0,
+            shaderLocation: 0,
+        }, {
+            format: &quot;float32x3&quot;,
+            offset: 3 * 4,
+            shaderLocation: 1
+        }, {
+            format: &quot;float32x3&quot;,
+            offset: 3 * 4 * 2,
+            shaderLocation: 2,
+        }]
+    }
+    const buffer = device.createBuffer({
+        size: verticesWithNormals.length * 4,
+        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+    })
+    device.queue.writeBuffer(buffer, 0, verticesWithNormals.buffer);
+    return [buffer, layout];
+}
+</code></pre>
+<p>Now, we need to change the shader to use the texture.</p>
+<pre><code class="language-wgsl">@group(0) @binding(0) var&lt;uniform&gt; projection: mat4x4&lt;f32&gt;;
+@group(0) @binding(1) var&lt;uniform&gt; angle: f32;
+@group(1) @binding(0) var texture: texture_2d&lt;f32&gt;;
+@group(1) @binding(1) var tx_sampler: sampler;
+
+struct VertexOutput {
+    @builtin(position) pos: vec4f,
+    @location(0) @interpolate(flat) face: u32,
+    @location(1) @interpolate(linear) real_position: vec3f,
+    @location(2) @interpolate(linear) normal: vec3f,
+    @location(3) @interpolate(linear) tex_coords: vec2f,
+};
+
+@vertex
+fn vertexMain(@location(0) position: vec3f, @location(1) norm: vec3f, @location(2) tex: vec3f, @builtin(vertex_index) vertexIndex: u32) -&gt; VertexOutput {
+    let rotation = mat3x3&lt;f32&gt;(
+        vec3&lt;f32&gt;(cos(angle), 0.0, sin(angle)),
+        vec3&lt;f32&gt;(0.0, 1.0, 0.0),
+        vec3&lt;f32&gt;(-sin(angle), 0.0, cos(angle)),
+    );
+    let rotated = vec4&lt;f32&gt;(rotation * 0.1 * (position - vec3f(0.0, 0.0, 0.5)), 1.0);
+    var projected = projection * (rotated - vec4&lt;f32&gt;(0.0, 0.0, ${f}, 0.0));
+    let final_position = vec4&lt;f32&gt;(projected.xy, 1.0 - rotated.z, projected.w);
+
+    var output = VertexOutput(final_position, vertexIndex / 6, rotated.xyz, rotation * norm, tex.xy);
+    return output;
+}
+
+@fragment
+fn fragmentMain(input: VertexOutput) -&gt; @location(0) vec4&lt;f32&gt; {
+
+    let light_source = vec3&lt;f32&gt;(-5.0, -2.0, -9.0);
+    let l = normalize(light_source - input.real_position);
+    let n = normalize(input.normal);
+    let r = reflect(-l, n);
+    let camera = vec3&lt;f32&gt;(0.0, 0.0, -1.0);
+    let v = normalize(camera - input.real_position);
+    let spec = pow(max(dot(r, v), 0.0), 32.0) * 0.8;
+    let diff = max(dot(-n, l), 0.0) * 0.4;
+    let amb = 0.2;
+    let albedo = textureSample(texture, tx_sampler, input.tex_coords).xyz;
+    let color = albedo * min(amb + diff + spec, 1.0);
+    return vec4&lt;f32&gt;(color, 1.0);
+}
+</code></pre>
+<p>However, now the bird is colored- but the wrong way. This is because we didn't enable <code>flipY</code>- like we previously said in the texture chapter, the texture coordinate system is different from the screen coordinate system.</p>
+<pre><code class="language-typescript">const get_texture = async (device: GPUDevice, url: string): Promise&lt;GPUTexture&gt; =&gt; {
+    const img = await fetch(url).then((res) =&gt; res.blob()).then((blob) =&gt; createImageBitmap(blob));
+    const bitmap = await createImageBitmap(img);
+    const texture = device.createTexture({
+        size: [bitmap.width, bitmap.height, 1],
+        format: &quot;rgba8unorm&quot;,
+        usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
+    });
+    device.queue.copyExternalImageToTexture({ source: bitmap, flipY: true }, { texture }, [bitmap.width, bitmap.height, 1]);
+    return texture;
+}
+</code></pre>
+<p>Now the bird looks nice, albeit looks like of like metal. We can modify the parameters of our lighting model to make it look more like a bird, by reducing <code>alpha</code> for example. But to achieve the best result, you should use the same lighting model as the mtl file suggests, which, is far too complex for this tutorial.</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../js/jquery-3.6.0.min.js"></script>
+        <script src="../js/bootstrap.min.js"></script>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

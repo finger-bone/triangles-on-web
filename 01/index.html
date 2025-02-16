@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        <link rel="canonical" href="https://finger-bone.github.io/triangles-on-web/01/">
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Basic Setup - Introduction to WebGPU</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/color-brewer.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="..">Introduction to WebGPU</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="dropdown active">
+                                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">2D Basics <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="./" class="dropdown-item active">Basic Setup</a>
+</li>
+                                    
+<li>
+    <a href="../02/" class="dropdown-item">Life Game</a>
+</li>
+                                    
+<li>
+    <a href="../03/" class="dropdown-item">Texture</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">3D Basics <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../04/" class="dropdown-item">Orthographic Projection</a>
+</li>
+                                    
+<li>
+    <a href="../05/" class="dropdown-item">Perspective Projection</a>
+</li>
+                                    
+<li>
+    <a href="../06/" class="dropdown-item">Lighting</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="navitem">
+                                <a href="../07/" class="nav-link">WGSL</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../08/" class="nav-link">3D Models</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../09/" class="nav-link">Curves and Surfaces</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" class="nav-link disabled">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../02/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-level="1"><a href="#triangles-on-web-ch1-draw-something" class="nav-link">Triangles On Web Ch1 Draw Something</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#starting-point" class="nav-link">Starting Point</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#drawing-a-triangle" class="nav-link">Drawing a Triangle</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#understanding-gpu-rendering-pipeline" class="nav-link">Understanding GPU Rendering Pipeline</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#creating-render-pass" class="nav-link">Creating Render Pass</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#drawing-a-triangle-using-shader" class="nav-link">Drawing a Triangle Using Shader</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#draw-life-game-cells" class="nav-link">Draw Life Game Cells</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#coordinate-system" class="nav-link">Coordinate System</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="triangles-on-web-ch1-draw-something">Triangles On Web Ch1 Draw Something</h1>
+<p>This series introduces WebGPU, and computer graphics in general.</p>
+<p>Except for the basic knowledge of JS, no prior knowledge is needed.</p>
+<p>WebGPU is a relatively new API for the GPU. Albeit named as WebGPU, it can actually be considered a layer on top of Vulkan, DirectX 12, and Metal, OpenGL and WebGL. It is designed to be a low-level API, and is intended to be used for high-performance applications, such as games and simulations.</p>
+<p>In this chapter, we will draw something on the screen. The first part will refer to the <a href="https://codelabs.developers.google.com/your-first-webgpu-app#0">Google Codelabs Tutorial</a>. We will create a life game on the screen.</p>
+<h2 id="starting-point">Starting Point</h2>
+<p>We will just create an empty vanilla JS project in vite with typescript enabled. Then clear all the extra codes, leaving only the <code>main.ts</code>.</p>
+<pre><code class="language-typescript">const main = async () =&gt; {
+    console.log('Hello, world!')
+}
+
+main()
+</code></pre>
+<p>Before actual coding, please check if your browser has WebGPU enabled. You can check it on <a href="https://webgpu.github.io/webgpu-samples/?sample=helloTriangle">WebGPU Samples</a>.</p>
+<p>Chrome now defaults to enabled. On Safari, you should go to developer settings, flag settings and enable WebGPU.</p>
+<p>We also need to enable thee types for WebGPU, install <code>@webgpu/types</code>, and in tsc compiler options, add <code>"types": ["@webgpu/types"]</code>.</p>
+<p>Furthermore, we replace the <code>&lt;div id="app"&gt;&lt;/div&gt;</code> with <code>&lt;canvas id="app"&gt;&lt;/canvas&gt;</code> in the <code>index.html</code>.</p>
+<h2 id="drawing-a-triangle">Drawing a Triangle</h2>
+<p>There are many boilerplate codes to WebGPU, here is how it looks like.</p>
+<h3 id="requesting-device">Requesting Device</h3>
+<p>First we need access to the GPU. In WebGPU, it is done by the concept of an <code>adapter</code>, which is a bridge between the GPU and the browser.</p>
+<pre><code class="language-typescript">const adapter = await navigator.gpu.requestAdapter();
+</code></pre>
+<p>Then we need to request a device from the adapter.</p>
+<pre><code class="language-typescript">const device = await adapter.requestDevice();
+console.log(device);
+</code></pre>
+<h3 id="configure-the-canvas">Configure the Canvas</h3>
+<p>We draw our triangle on the canvas. We need to get the canvas element and configure it.</p>
+<pre><code class="language-typescript">const canvas = document.getElementById('app') as HTMLCanvasElement;
+const context = canvas.getContext(&quot;webgpu&quot;)!;
+const canvasFormat = navigator.gpu.getPreferredCanvasFormat();
+context.configure({
+    device: device,
+    format: canvasFormat,
+});
+</code></pre>
+<p>Here, we use <code>getContext</code> to get relative information about the canvas. By specifying <code>webgpu</code>, we will get a context that is responsible for rendering with WebGPU.</p>
+<p><code>CanvasFormat</code> is actually the color mode, for example, <code>srgb</code>. We usually just use the preferred format.</p>
+<p>Lastly, we configure the context with the device and the format.</p>
+<h2 id="understanding-gpu-rendering-pipeline">Understanding GPU Rendering Pipeline</h2>
+<p>Before diving further into the engineering details, we first must understand how GPU handles rendering.</p>
+<p>The GPU rendering pipeline is a series of steps that the GPU takes to render an image.</p>
+<p>The application run on GPU is called a shader. The shader is a program that runs on the GPU. The shader has a special programming language that we will discuss later.</p>
+<p>The render pipeline has the following steps,</p>
+<ol>
+<li>CPU loads the data into the GPU. CPU may removed some invisible objects to save GPU resources.</li>
+<li>CPU sets all the colors, textures, and other data that the GPU needs to render the scene.</li>
+<li>CPU trigger a draw call to the GPU.</li>
+<li>GPU gets the data from the CPU and starts rendering the scene.</li>
+<li>GPU run into the geometry process, which processes the vertices of the scene.</li>
+<li>In the geometry process, the first step is the vertex shader, which processes the vertices of the scene. It may transform the vertices, change the color of the vertices, or do other things to the vertices.</li>
+<li>The next step is the tessellation shader, which processes the vertices of the scene. It performs subdivision of the vertices, whose purpose is to increase the detail of the scene. It also has many procedures but it's too complex to explain here.</li>
+<li>The next step is the geometry shader, which processes the vertices of the scene. In contrast to the vertex shader, where the developer could only define how one vertex is transformed, the geometry shader can define how multiple vertices are transformed. It can also create new vertices, which can be used to create new geometry.</li>
+<li>The last step of geometry process contains clipping, removing the undue parts that exceed the screen, and culling, removing the invisible parts that are not visible to the camera.</li>
+<li>The next step is the rasterization process, which converts the vertices into fragments. A fragment is a pixel that is going to be rendered on the screen.</li>
+<li>The next step is iteration of triangles, which iterates over the triangles of the scene.</li>
+<li>The next step is the fragment shader, which processes the fragments of the scene. It may change the color of the fragments, change the texture of the fragments, or do other things to the fragments. In this part, the depth test and stencil test are also performed. Depth test means to confer each fragment with the depth value, and the fragment with the smallest depth value will be rendered. Stencil test means to confer each fragment with the stencil value, and the fragment that passes the stencil test will be rendered. The stencil value is decided by the developer.</li>
+<li>The next step is the blending process, which blends the fragments of the scene. For example, if two fragments are overlapping, the blending process will blend the two fragments together.</li>
+<li>The last step is the output process, which outputs the fragments to the swap chain. The swap chain is a chain of images that are used to render the scene. To put it more simply, it is a buffer that holds the image that is going to be displayed on the screen.</li>
+</ol>
+<p>Depending on the primitives, the smallest unit that GPU can render, the pipeline may have different steps. Typically, we use triangles, which signals the GPU to treat every 3 group of vertices as a triangle.</p>
+<h2 id="creating-render-pass">Creating Render Pass</h2>
+<p>Render Pass is a step of the full GPU rendering. When a render pass is created, the GPU will start rendering the scene, and vice versa when it finishes.</p>
+<p>To create a render pass, we need to create an encoder that is responsible for compiling the render pass to GPU codes.</p>
+<pre><code class="language-typescript">const encoder = device.createCommandEncoder();
+</code></pre>
+<p>Then we create a render pass.</p>
+<pre><code class="language-typescript">const pass = encoder.beginRenderPass({
+  colorAttachments: [{
+     view: context.getCurrentTexture().createView(),
+     loadOp: &quot;clear&quot;,
+     storeOp: &quot;store&quot;,
+  }]
+});
+</code></pre>
+<p>Here, we create a render pass with a color attachment. Attachment is a concept in GPU that represents the image that is going to be rendered. An image may have many aspect which the GPU need to process, and each of them is an attachment.</p>
+<p>Here we only have one attachment, which is the color attachment. The view is the panel that the GPU will render on, here we set it to the texture of the canvas.</p>
+<p><code>loadOp</code> is the operation that the GPU will do before the render pass, <code>clear</code> means GPU will first clear all the previously data from the last frame, and <code>storeOp</code> is the operation that the GPU will do after the render pass, <code>store</code> means GPU will store the data to the texture.</p>
+<p><code>loadOp</code> can be <code>load</code>, which preserves the data from the last frame, or <code>clear</code>, which clears the data from the last frame. <code>storeOp</code> can be <code>store</code>, which stores the data to the texture, or <code>discard</code>, which discards the data.</p>
+<p>Now, just call <code>pass.end()</code> to end the render pass. Now, the command is saved in the command buffer of the GPU.</p>
+<p>To get the compiled command, use the following code,</p>
+<pre><code class="language-typescript">const commandBuffer = encoder.finish();
+</code></pre>
+<p>And, finally, submit the command to the render queue of the GPU.</p>
+<pre><code class="language-typescript">device.queue.submit([commandBuffer]);
+</code></pre>
+<p>Now, you should see an ugly black canvas.</p>
+<p>Based on our stereotypical concepts about 3D, we would expect empty space to be a blue color. We can done that by setting the clear color.</p>
+<pre><code class="language-typescript">const pass = encoder.beginRenderPass({
+    colorAttachments: [{
+        view: context.getCurrentTexture().createView(),
+        loadOp: &quot;clear&quot;,
+        clearValue: { r: 0.1, g: 0.3, b: 0.8, a: 1.0 },
+        storeOp: &quot;store&quot;,
+    }]
+});
+</code></pre>
+<h2 id="drawing-a-triangle-using-shader">Drawing a Triangle Using Shader</h2>
+<p>Now, we will draw a triangle on the canvas. We will use a shader to do that. The shader language will be wgsl, WebGPU Shading Language.</p>
+<p>Now, suppose we want to draw a triangle with the following coordinates,</p>
+<pre><code class="language-python">(-0.5, -0.5), (0.5, -0.5), (0.0, 0.5)
+</code></pre>
+<p>As we stated before, to complete a render pipeline, we need a vertex shader and a fragment shader.</p>
+<h3 id="vertex-shader">Vertex Shader</h3>
+<p>Use the following code to create shader modules.</p>
+<pre><code class="language-typescript">const cellShaderModule = device.createShaderModule({
+  label: &quot;shader&quot;,
+  code: `
+    // Shaders
+  `
+});
+</code></pre>
+<p><code>label</code> here is simply a name, which is meant for debugging. <code>code</code> is the actual shader code.</p>
+<p>Vertex shader is a function that takes any parameter and returns the position of the vertex. However, contrary to what we might expect, the vertex shader returns a four dimensional vector, not a three dimensional vector. The fourth dimension is the <code>w</code> dimension, which is used for perspective division. We will discuss it later.</p>
+<p>Now, you can simply regard a four dimensional vector <code>(x, y, z, w)</code> as a three dimensional vector <code>(x / w, y / w, z / w)</code>.</p>
+<p>However, there is another problem- how to pass the data to the shader, and how to get the data out from the shader.</p>
+<p>To pass the data to the shader, we use the <code>vertexBuffer</code>, a buffer that contains the data of the vertices. We can create a buffer with the following code,</p>
+<pre><code class="language-typescript">const vertexBuffer = device.createBuffer({
+  size: 24,
+  usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+  mappedAtCreation: true,
+});
+</code></pre>
+<p>Here we create a buffer with a size of 24 bytes, 6 floats, which is the size of the vertices.</p>
+<p><code>usage</code> is the usage of the buffer, which is <code>VERTEX</code> for vertex data. <code>GPUBufferUsage.COPY_DST</code> means this buffer is valid as a copy destination. For all buffer whose data are written by the CPU, we need to set this flag.</p>
+<p>The <code>map</code> here means to map the buffer to the CPU, which means the CPU can read and write the buffer. The <code>unmap</code> means to unmap the buffer, which means the CPU can no longer read and write the buffer, and thus the content is available to the GPU.</p>
+<p>Now, we can write the data to the buffer.</p>
+<pre><code class="language-typescript">new Float32Array(vertexBuffer.getMappedRange()).set([
+  -0.5, -0.5,
+  0.5, -0.5,
+  0.0, 0.5,
+]);
+vertexBuffer.unmap();
+</code></pre>
+<p>Here, we map the buffer to the CPU, and write the data to the buffer. Then we unmap the buffer.</p>
+<p><code>vertexBuffer.getMappedRange()</code> will return the range of the buffer that is mapped to the CPU. We can use it to write the data to the buffer.</p>
+<p>However, these are just raw data, and the GPU doesn't know how to interpret them. We need to define the layout of the buffer.</p>
+<pre><code class="language-typescript">const vertexBufferLayout: GPUVertexBufferLayout = {
+    arrayStride: 8,
+    attributes: [{
+        format: &quot;float32x2&quot;,
+        offset: 0,
+        shaderLocation: 0,
+    }],
+};
+</code></pre>
+<p>Here, arrayStride is the number of bytes the GPU needs to skip forward in the buffer when it's looking for the next input. For example, if the arrayStride is 8, the GPU will skip 8 bytes to get the next input.</p>
+<p>Since here, we use <code>float32x2</code>, the stride is 8 bytes, 4 bytes for each float, and 2 floats for each vertex.</p>
+<p>Now we can write the vertex shader.</p>
+<pre><code class="language-typescript">const shaderModule = device.createShaderModule({
+  label: &quot;shader&quot;,
+  code: `
+    @vertex
+    fn vertexMain(@location(0) pos: vec2f) -&gt; @builtin(position) vec4f {
+        return vec4f(pos, 0, 1);
+    }
+  `
+});
+</code></pre>
+<p>Here, <code>@vertex</code> means this is a vertex shader. <code>@location(0)</code> means the location of the attribute, which is 0, as previously defined. Please note that in the shader language, you are dealing with the layout of the buffer, so whenever you pass a value, you need to pass either a struct, whose fields had defined <code>@location</code>, or just a value with <code>@location</code>.</p>
+<p><code>vec2f</code> is a two dimensional float vector, and <code>vec4f</code> is a four dimensional float vector. Since vertex shader is required to return a vec4f position, we need to annotate that with <code>@builtin(position)</code>.</p>
+<h3 id="fragment-shader">Fragment Shader</h3>
+<p>Fragment shader, similarly, is something that takes the interpolated vertex output and output the attachments, color in this case. The interpolated means that although only certain pixel on the vertices have decided value, for every other pixel, the values are interpolated, either linear, averaged, or other means. The color of fragment is a four dimensional vector, which is the color of the fragment, respectively red, green, blue, and alpha.</p>
+<p>Please note that the color is in the range of 0 to 1, not 0 to 255. In addition that, fragment shader defines the color of every vertex, not the color of the triangle. The color of the triangle is determined by the color of the vertices, by interpolation.</p>
+<p>Since we currently does not bother to control the color of the fragment, we can simply return a constant color.</p>
+<pre><code class="language-typescript">const shaderModule = device.createShaderModule({
+  label: &quot;shader&quot;,
+  code: `
+    @vertex
+    fn vertexMain(@location(0) pos: vec2f) -&gt; @builtin(position) vec4f {
+        return vec4f(pos, 0, 1);
+    }
+    @fragment
+    fn fragmentMain() -&gt; vec4&lt;f32&gt; {
+        return vec4&lt;f32&gt;(1.0, 1.0, 0.0, 1.0);
+    }
+  `
+});
+</code></pre>
+<h3 id="render-pipeline">Render Pipeline</h3>
+<p>Then we define the customized render pipeline by replacing the vertex and fragment shader.</p>
+<pre><code class="language-typescript">const pipeline = device.createRenderPipeline({
+    label: &quot;pipeline&quot;,
+    layout: &quot;auto&quot;,
+    vertex: {
+        module: shaderModule,
+        entryPoint: &quot;vertexMain&quot;,
+        buffers: [vertexBufferLayout]
+    },
+    fragment: {
+        module: shaderModule,
+        entryPoint: &quot;fragmentMain&quot;,
+        targets: [{
+            format: canvasFormat
+        }]
+    }
+});
+</code></pre>
+<p>Note that in fragment shader, we need to specify the format of the target, which is the format of the canvas.</p>
+<h3 id="draw-call">Draw Call</h3>
+<p>Before render pass ends, we add the draw call.</p>
+<pre><code class="language-typescript">pass.setPipeline(pipeline);
+pass.setVertexBuffer(0, vertexBuffer);
+pass.draw(3);
+</code></pre>
+<p>Here, in <code>setVertexBuffer</code>, the first parameter is the index of the buffer, in the pipeline definition field <code>buffers</code>, and the second parameter is the buffer itself.</p>
+<p>When calling <code>draw</code>, the parameter is the number of vertices to draw. Since we have 3 vertices, we draw 3.</p>
+<p>Now, you should see a yellow triangle on the canvas.</p>
+<h2 id="draw-life-game-cells">Draw Life Game Cells</h2>
+<p>Now we tweak our codes a bit- since we want to build a life game, so we need to draw squares instead of triangles.</p>
+<p>A square is actually two triangles, so we need to draw 6 vertices. The changes here are simple and you don't need a detailed explanation.</p>
+<pre><code class="language-typescript">const main = async () =&gt; {
+    const adapter = await navigator.gpu.requestAdapter();
+    if (!adapter) {
+        console.error('WebGPU not supported');
+        return;
+    }
+    const device = await adapter.requestDevice();
+    console.log(device);
+    const canvas = document.getElementById('app') as HTMLCanvasElement;
+    const context = canvas.getContext(&quot;webgpu&quot;)!;
+    const canvasFormat = navigator.gpu.getPreferredCanvasFormat();
+    context.configure({
+        device: device,
+        format: canvasFormat,
+    });
+    const vertices = [
+        0.0, 0.0,
+        0.0, 1.0,
+        1.0, 0.0,
+
+        1.0, 1.0,
+        0.0, 1.0,
+        1.0, 0.0,
+    ]
+    const vertexBuffer = device.createBuffer({
+        size: vertices.length * 4,
+        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+        mappedAtCreation: true,
+    });
+    new Float32Array(vertexBuffer.getMappedRange()).set(vertices);
+    const vertexBufferLayout: GPUVertexBufferLayout = {
+        arrayStride: 8,
+        attributes: [{
+            format: &quot;float32x2&quot;,
+            offset: 0,
+            shaderLocation: 0,
+        }],
+    };
+    const shaderModule = device.createShaderModule({
+        label: &quot;shader&quot;,
+        code: `
+            @vertex
+            fn vertexMain(@location(0) pos: vec2f) -&gt; @builtin(position) vec4f {
+                return vec4f(pos, 0, 1);
+            }
+            @fragment
+            fn fragmentMain() -&gt; vec4&lt;f32&gt; {
+                return vec4&lt;f32&gt;(1.0, 1.0, 0.0, 1.0);
+            }
+        `
+    });
+    vertexBuffer.unmap();
+    const pipeline = device.createRenderPipeline({
+        label: &quot;Cell pipeline&quot;,
+        layout: &quot;auto&quot;,
+        vertex: {
+            module: shaderModule,
+            entryPoint: &quot;vertexMain&quot;,
+            buffers: [vertexBufferLayout]
+        },
+        fragment: {
+            module: shaderModule,
+            entryPoint: &quot;fragmentMain&quot;,
+            targets: [{
+                format: canvasFormat
+            }]
+        }
+    });
+    const encoder = device.createCommandEncoder();
+    const pass = encoder.beginRenderPass({
+        colorAttachments: [{
+            view: context.getCurrentTexture().createView(),
+            loadOp: &quot;clear&quot;,
+            clearValue: { r: 0.1, g: 0.3, b: 0.8, a: 1.0 },
+            storeOp: &quot;store&quot;,
+        }]
+    });
+    pass.setPipeline(pipeline);
+    pass.setVertexBuffer(0, vertexBuffer);
+    pass.draw(vertices.length / 2);
+    pass.end();
+    const commandBuffer = encoder.finish();
+    device.queue.submit([commandBuffer]);
+}
+</code></pre>
+<p>Now, you should see a yellow square on the canvas.</p>
+<h2 id="coordinate-system">Coordinate System</h2>
+<p>We didn't discuss the coordinate system of the GPU. It is, well, rather simple. The actual coordinate system of the GPU is a right-handed coordinate system, which means the x-axis points to the right, the y-axis points up, and the z-axis points out of the screen.</p>
+<p>The range of the coordinate system is from -1 to 1. The origin is at the center of the screen. z-axis is from 0 to 1, 0 is the near plane, and 1 is the far plane. However, z-axis is for depth. When you do 3D rendering, you can not just use z-axis to determine the position of the object, you need to use the perspective division. This is called the NDC, normalized device coordinate.</p>
+<p>For example, if you want to draw a square at the top left corner of the screen, the vertices are (-1, 1), (-1, 0), (0, 1), (0, 0), though you need to use two triangles to draw it.</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../js/jquery-3.6.0.min.js"></script>
+        <script src="../js/bootstrap.min.js"></script>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

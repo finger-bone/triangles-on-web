@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        <link rel="canonical" href="https://finger-bone.github.io/triangles-on-web/09/">
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Curves and Surfaces - Introduction to WebGPU</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/color-brewer.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="..">Introduction to WebGPU</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">2D Basics <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../01/" class="dropdown-item">Basic Setup</a>
+</li>
+                                    
+<li>
+    <a href="../02/" class="dropdown-item">Life Game</a>
+</li>
+                                    
+<li>
+    <a href="../03/" class="dropdown-item">Texture</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">3D Basics <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../04/" class="dropdown-item">Orthographic Projection</a>
+</li>
+                                    
+<li>
+    <a href="../05/" class="dropdown-item">Perspective Projection</a>
+</li>
+                                    
+<li>
+    <a href="../06/" class="dropdown-item">Lighting</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="navitem">
+                                <a href="../07/" class="nav-link">WGSL</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../08/" class="nav-link">3D Models</a>
+                            </li>
+                            <li class="navitem active">
+                                <a href="./" class="nav-link">Curves and Surfaces</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../08/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" class="nav-link disabled">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-level="1"><a href="#triangles-on-web-ch9-bezier-curve-b-spline-curve-and-surface" class="nav-link">Triangles on Web Ch9 Bézier Curve, B-spline Curve and Surface</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#curve-math" class="nav-link">Curve Math</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#bezier-curve" class="nav-link">Bézier Curve</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#b-spline-curve" class="nav-link">B-spline Curve</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#producing-bezier-curve" class="nav-link">Producing Bézier Curve</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#surface" class="nav-link">Surface</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#conclusion" class="nav-link">Conclusion</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="triangles-on-web-ch9-bezier-curve-b-spline-curve-and-surface">Triangles on Web Ch9 Bézier Curve, B-spline Curve and Surface</h1>
+<p>Previously, we took a polygonal approach for shapes. That is, we defined the shape with straight shapes, like straight lines and triangles. However, sometimes we may need inherently curve shapes, like in vector graphics design. In this chapter, we will learn about Bézier curve and B-spline curve, which are two popular curve representations. Each two kind of two curves combined together, we get a surface.</p>
+<h2 id="curve-math">Curve Math</h2>
+<p>In a mathematical sense, a curve is a continuous mapping from a segment of the real points in space. That is,</p>
+<p>
+<script type="math/tex; mode=display">
+Curve(\sigma): \mathbb{R} \rightarrow \mathbb{R}^n
+</script>
+</p>
+<p>Or a more accessible form,</p>
+<p>
+<script type="math/tex; mode=display">
+Curve(\sigma) = (x(\sigma), y(\sigma), z(\sigma)) \space \text{where} \space \sigma \in [\sigma_{min}, \sigma_{max}]
+</script>
+</p>
+<p>Where <script type="math/tex">\sigma</script> is the parameter that defines the curve. For example, in a straight line, <script type="math/tex">\sigma</script> can be the distance from the starting point. In a circle, <script type="math/tex">\sigma</script> can be the angle.</p>
+<p>Due to the different nature of the <script type="math/tex">\sigma</script>, we usually re-parameterize the curve. Re-parameterization is the process of changing the parameter <script type="math/tex">\sigma</script> to another parameter <script type="math/tex">\tau</script>. The re-parameterization is usually a function <script type="math/tex">\tau = rep(\sigma)</script>.</p>
+<p>Then the new curve is,</p>
+<p>
+<script type="math/tex; mode=display">
+Curve(\tau) = (x(rep(\tau)), y(rep(\tau)), z(rep(\tau))) \space \text{where} \space \tau \in [\tau_{min}, \tau_{max}]
+</script>
+</p>
+<p>We often take a unified parameter called the curve-length. In an intuitive sense, the curve-length is basically how long a point have traveled on the curve from an arbitrary starting point. The curve-length is denoted as <script type="math/tex">s</script>.</p>
+<p>In a more rigorous sense, the curve-length is defined as,</p>
+<p>
+<script type="math/tex; mode=display">
+s(\sigma) = \int_{\sigma_{min}}^{\sigma} \sqrt{\left(\frac{dx}{d\sigma}\right)^2 + \left(\frac{dy}{d\sigma}\right)^2 + \left(\frac{dz}{d\sigma}\right)^2} d\sigma
+</script>
+</p>
+<p>So a curve can be represented as,</p>
+<p>
+<script type="math/tex; mode=display">
+Curve(s) = (x(s), y(s), z(s)) \space \text{where} \space s \in [s_{min}, s_{max}]
+</script>
+</p>
+<p>Often, we prefer a normalized form. With the curve-length parameter, the unit of the parameter is unified, but it is not normalized. We can simply use a linear transformation from the curve-length to a new parameter <script type="math/tex">t</script>.</p>
+<p>
+<script type="math/tex; mode=display">
+t = \frac{s - s_{min}}{s_{max} - s_{min}}
+</script>
+</p>
+<p>In all, for any given curve with any given parameter <script type="math/tex">\sigma</script>, we can always re-parameterize it to a normalized curve-length parameter <script type="math/tex">t</script>.</p>
+<h2 id="bezier-curve">Bézier Curve</h2>
+<p>Then we need to consider how we can define a curve- you can't just let the user input the curve function- that is just, stupid. Currently, two popular methods are Bézier curve and B-spline curve. We will first talk about Bézier curve.</p>
+<p>The idea of Bézier curve is simple- instead of asking user the curve function, we ask the user to define a few control points- the points that controls the shape of the curve, then we define a good curve that roughly fits the straight lines between the control points.</p>
+<p>Let's suppose the control points are <script type="math/tex">CP_i \space \text{where} i = 0, 1, ..., n</script>, then Bézier curve is defined as,</p>
+<p>
+<script type="math/tex; mode=display">
+Curve(t) = \sum_{i=0}^{n} CP_i \cdot B_{n}^{i}(t)
+</script>
+</p>
+<p>Where <script type="math/tex">B_{n}^{i+1}</script> is called the Bernstein polynomial. It is defined as,</p>
+<p>
+<script type="math/tex; mode=display">
+B_{n}^{i}(t) = \binom{n}{i} t^i (1 - t)^{n - i}
+</script>
+</p>
+<p>Where <script type="math/tex">\binom{n}{i}</script> is the binomial coefficient. It is defined as,</p>
+<p>
+<script type="math/tex; mode=display">
+\binom{n}{i} = \frac{n!}{i! (n - i)!}
+</script>
+</p>
+<p>The idea behind the Bézier curve is that, for a certain point at parameter <script type="math/tex">t</script>, the further the control point is, the less influence it has on the point. So we can write down,</p>
+<p>
+<script type="math/tex; mode=display">
+Curve(t) = \sum_{i=0}^{n} CP_i \cdot Weight_i(t)
+</script>
+</p>
+<p>A natural assumption we can make is that, we want the sum of the weight stay the same throughout the curve. If we force the sum of the weight to be 1, we can write down,</p>
+<p>
+<script type="math/tex; mode=display">
+1 = \sum_{i=0}^{n} Weight_i(t)
+</script>
+</p>
+<p>For Bézier curve, we can introduce the Bernstein polynomial in the following way,</p>
+<p>
+<script type="math/tex; mode=display">
+1 = (1 - t + t)^n = \sum_{i=0}^{n} B_{n}^{i}(t)
+</script>
+</p>
+<p>So the weight is defined as Bernstein polynomial.</p>
+<h2 id="b-spline-curve">B-spline Curve</h2>
+<p>The B-spline is also based on the weight-control-point idea. In Bézier curve, since at any given point, the Bernstein weight is not zero, except for the starting and ending point, so if you make any adjustment to any control point, the whole curve will be affected. This is not always desirable.</p>
+<p>B-spline Curve address the issue by introducing a knot vector. The knot vector is a vector that defines the weight of the control points. The B-spline curve is defined as,</p>
+<p>
+<script type="math/tex; mode=display">
+Curve(t) = \sum_{i=0}^{n-1} CP_i \cdot N_{i, p}(t)
+</script>
+</p>
+<p>Where <script type="math/tex">N_{i, p}(t)</script> is the B-spline basis function. It is defined as,</p>
+<p>
+<script type="math/tex; mode=display">
+N_{i, p}(t) = \frac{t - t_i}{t_{i+p} - t_i} N_{i, p-1}(t) + \frac{t_{i+p+1} - t}{t_{i+p+1} - t_{i+1}} N_{i+1, p-1}(t)
+</script>
+</p>
+<p>Woa, that's scary. But don't be afraid, it is actually quite simple. The basic idea is that the instead of using the Bernstein polynomial, the B-spline function only spans a few control points, and evaluated zero outside the span. The number of points in the span is commensurate degree of the B-spline function, that is the <script type="math/tex">p</script> in the <script type="math/tex">N_{i, p}(t)</script>.</p>
+<p>Let's suppose we have some <script type="math/tex">CP_i</script>, and we want <script type="math/tex">CP_i</script> to have the greatest influence at <script type="math/tex">t_{i+1}</script>. Considering the weight restriction, we make the following restriction on the function we construct, <script type="math/tex">N_{i, p}(t)</script>,</p>
+<ol>
+<li>should be zero outside the span of <script type="math/tex">CP_i</script>.</li>
+<li>should be one at the corresponding <script type="math/tex">t_{i+1}</script> for a given <script type="math/tex">CP_i</script>.</li>
+<li>sum of all <script type="math/tex">N_{i, p}(t)</script> over <script type="math/tex">i</script> should be one.</li>
+</ol>
+<p>In the following, when encountering zero divided by zero, we can just take the limit as its value- it will always have one. However, actually, the values are always zero for such cases.</p>
+<p>For the zero degree, we only consider the sole point <script type="math/tex">CP_i</script>. It is easy to define the weights as, one for a certain segment of <script type="math/tex">t</script> and zero for the rest.</p>
+<p>
+<script type="math/tex; mode=display">
+N_{i, 0}(t) = \begin{cases} 1 & \text{if} \space t_i \leq t < t_{i+1} \\ 0 & \text{otherwise} \end{cases}
+</script>
+</p>
+<p>So this is just a bunch of control points.</p>
+<p>Then, we increase the degree- the span. That is, we make one control point <script type="math/tex">CP_i</script> influence the next one control point, <script type="math/tex">P_{i+1}</script>. So we have,</p>
+<p>
+<script type="math/tex; mode=display">
+N_{i, 1}(t) = \begin{cases} \frac{t - t_i}{t_{i+1} - t_i} & \text{if} \space t_i \leq t < t_{i+1} \\ \frac{t_{i+1} - t}{t_{i+2} - t_{i+1}} & \text{if} \space t_{i+1} \leq t < t_{i+2} \\ 0 & \text{otherwise} \end{cases}
+</script>
+</p>
+<p>This function will form a triangle spike at <script type="math/tex">t_{i+1}</script>, spanning from <script type="math/tex">t_{i}</script> to <script type="math/tex">t_{i+2}</script>.</p>
+<p>The one-zero restriction is satisfied, we check the sum now.</p>
+<p>
+<script type="math/tex; mode=display">
+N_{i, 1}(t) + N_{i + 1, 1}(t) \\ =\frac{ t - t_{i + 1}}{t_{i + 2} - t_{i + 1}} + \frac{t_{i + 2} - t}{t_{i + 2} - t_{i + 1}} = 1
+</script>
+</p>
+<p>This sum is done for <script type="math/tex">t_{i+1} < t < t_{i+2}</script>.</p>
+<p>Then, we increase the degree again. We make the control point <script type="math/tex">CP_i</script> influence the next two control points. This time, instead of interpolating the <script type="math/tex">t</script> value, we will interpolate the degree function. Like the following,</p>
+<p>
+<script type="math/tex; mode=display">
+N_{i, 2}(t) = \frac{t - t_i}{t_{i+1} - t_i} N_{i, 1}(t) + \frac{t_{i+2} - t}{t_{i+2} - t_{i+1}} N_{i+1, 1}(t)
+</script>
+</p>
+<p>We know that for <script type="math/tex">N_{i, 1}(t)</script>, is is one at <script type="math/tex">t_{i+1}</script> and zero at <script type="math/tex">t_i</script> and <script type="math/tex">t_{i+2}</script>. Similarly, <script type="math/tex">N_{i+1, 1}(t)</script> is one at <script type="math/tex">t_{i+2}</script> and zero at <script type="math/tex">t_{i+1}</script> and <script type="math/tex">t_{i+3}</script>.</p>
+<p>So for <script type="math/tex">t_{i + 1}</script>, the former term is always one, while the latter stays zero.</p>
+<p>In addition, if we sum all the <script type="math/tex">N_{i, p}(t)</script> over <script type="math/tex">i</script>, we only have three terms to consider,</p>
+<p>
+<script type="math/tex; mode=display">
+N_{i, 2}(t) = \frac{t - t_i}{t_{i+1} - t_i} N_{i, 1}(t) + \frac{t_{i+2} - t}{t_{i+2} - t_{i+1}} N_{i+1, 1}(t) \\ 
+N_{i + 1, 2}(t) = \frac{t - t_{i+1}}{t_{i+2} - t_{i+1}} N_{i+1, 1}(t) + \frac{t_{i+3} - t}{t_{i+3} - t_{i+2}} N_{i+2, 1}(t) \\
+N_{i + 2, 2}(t) = \frac{t - t_{i+2}}{t_{i+3} - t_{i+2}} N_{i+2, 1}(t) + \frac{t_{i+4} - t}{t_{i+4} - t_{i+3}} N_{i+3, 1}(t) \\
+</script>
+</p>
+<p>Adding up the three terms, we have,</p>
+<p>
+<script type="math/tex; mode=display">
+N_{i, 2}(t) + N_{i + 1, 2}(t) + N_{i + 2, 2}(t) =  1
+</script>
+</p>
+<p>The sum is done for <script type="math/tex">t_{i+2} < t < t_{i+3}</script>. So the remaining terms are zero.</p>
+<p>Note that, in this calculation, the only assumption is that, <script type="math/tex">N_{i, 1} + N_{i + 1, 1} = 1</script>.</p>
+<p>If we take,</p>
+<p>
+<script type="math/tex; mode=display">
+N_{i, p} = \frac{t - t_i}{t_{i+p} - t_i} N_{i, p-1} + \frac{t_{i+p+1} - t}{t_{i+p+1} - t_{i+1}} N_{i+1, p-1}
+</script>
+</p>
+<p>The same calculation can be done for any <script type="math/tex">p</script>, it is just more terms to consider.</p>
+<p>Here is a simple illustration for that. We can take <script type="math/tex">N_{i, p}</script> and <script type="math/tex">N_{i+1, p}</script>, they will produce <script type="math/tex">N_{i, p+1}</script> and <script type="math/tex">N_{i+1, p+1}</script>. If we iterate through, we simply get all the <script type="math/tex">N_{i, p}</script>. So we can conclude that the weight is always one.</p>
+<p>The one-zero restriction is more obviously, we just skip the calculation here.</p>
+<h2 id="producing-bezier-curve">Producing Bézier Curve</h2>
+<p>This is a programming tutorial, not purely math. So we need to implement Bezier and B-spline curve. Since their only difference is the weight function, we will only implement Bézier curve for reference.</p>
+<p>However, up until now, WebGPU does not directly support Bézier curve nor B-spline curve- since polygonal shapes are more common in computer graphics.</p>
+<p>However, we can perform CPU calculation and gather the lines, then draw the lines with WebGPU. </p>
+<p>That's enough rambling, let's implement the Bézier curve.</p>
+<p>Let's review how to set up WebGPU again- this will be, sadly, the last time we do this in the series.</p>
+<p>First, request an adapter, from which we then request a device. The adapter is obtained via <code>navigator.gpu.requestAdapter()</code>.</p>
+<pre><code class="language-typescript">const requestDevice = async (): Promise&lt;[GPUAdapter, GPUDevice] | null&gt; =&gt; {
+    const adapter = await navigator.gpu.requestAdapter();
+    if (!adapter) {
+        console.error('WebGPU not supported');
+        return null;
+    }
+    const device = await adapter.requestDevice();
+    console.log(device);
+    return [adapter, device];
+}
+</code></pre>
+<p>Then, we set the canvas and the context. The context is obtained via <code>canvas.getContext('webgpu')</code>.</p>
+<pre><code class="language-typescript">const getContext = async (device: GPUDevice): Promise&lt;[GPUCanvasContext, GPUTextureFormat]&gt; =&gt; {
+    const canvas = document.getElementById('app') as HTMLCanvasElement;
+    const context = canvas.getContext(&quot;webgpu&quot;)!;
+    const canvasFormat = navigator.gpu.getPreferredCanvasFormat();
+    context.configure({
+        device: device,
+        format: canvasFormat,
+    });
+    return [context, canvasFormat];
+}
+</code></pre>
+<p>Then, we set up the shader module. The vertex shader now takes a <code>t</code> parameter, and gives the position of the point on the curve. The fragment shader is the same as before.</p>
+<p>We suppose we will have a bézier curve with,</p>
+<p>
+<script type="math/tex; mode=display">
+Curve(t) = (-0.5, -0.5) B_4^0(t) + (0.5, -0.5) B_4^1(t) + (0.5, 0.5) B_4^2(t) + (-0.5, 0.5) B_4^3(t) + (-0.5, -0.5) B_4^4(t)
+</script>
+</p>
+<p>So we have the following code,</p>
+<pre><code class="language-typescript">const getShaderModule = async (device: GPUDevice): Promise&lt;GPUShaderModule&gt; =&gt; {
+    return device.createShaderModule({
+        label: &quot;shader&quot;,
+        code: `
+            fn factorial(n: i32) -&gt; i32 {
+                var result: i32 = 1;
+                for (var i: i32 = 1; i &lt;= n; i = i + 1) {
+                    result = result * i;
+                }
+                return result;
+            }
+
+            fn comb(n: i32, k: i32) -&gt; i32 {
+                return factorial(n) / (factorial(k) * factorial(n - k));
+            }
+
+            @vertex
+            fn vertexMain(@location(0) t: f32) -&gt; @builtin(position) vec4&lt;f32&gt; {
+                // calculate all the bezier functions
+                var b40 = f32(comb(4, 0)) * pow(1.0 - t, 4 - 0) * pow(t, 0);
+                var b41 = f32(comb(4, 1)) * pow(1.0 - t, 4 - 1) * pow(t, 1);
+                var b42 = f32(comb(4, 2)) * pow(1.0 - t, 4 - 2) * pow(t, 2);
+                var b43 = f32(comb(4, 3)) * pow(1.0 - t, 4 - 3) * pow(t, 3);
+                var b44 = f32(comb(4, 4)) * pow(1.0 - t, 4 - 4) * pow(t, 4);
+                // control points are (-0.5, -0.5), (-0.5, 0.5), (0.5, 0.5), (0.5, -0.5), (-0.5, -0.5)
+                var p0 = vec2&lt;f32&gt;(-0.5, -0.5);
+                var p1 = vec2&lt;f32&gt;(-0.5, 0.5);
+                var p2 = vec2&lt;f32&gt;(0.5, 0.5);
+                var p3 = vec2&lt;f32&gt;(0.5, -0.5);
+                var p4 = vec2&lt;f32&gt;(-0.5, -0.5);
+                var res = vec2&lt;f32&gt;(0.0, 0.0);
+                res = res + b40 * p0;
+                res = res + b41 * p1;
+                res = res + b42 * p2;
+                res = res + b43 * p3;
+                res = res + b44 * p4;
+                return vec4&lt;f32&gt;(res, 0.0, 1.0);
+            }
+
+            @fragment
+            fn fragmentMain() -&gt; @location(0) vec4&lt;f32&gt; {
+                return vec4&lt;f32&gt;(1.0, 1.0, 1.0, 1.0);
+            }
+        `
+    });
+}
+</code></pre>
+<p>Then the vertex buffer,</p>
+<pre><code class="language-typescript">const getVertexBuffer = async (device: GPUDevice): Promise&lt;[GPUBuffer, GPUVertexBufferLayout]&gt; =&gt; {
+    const totalPoints = 100;
+    const t = new Float32Array(
+        Array.from(
+            new Array(totalPoints - 1),
+            (_, i) =&gt; i
+        ).flatMap((i) =&gt; [i / totalPoints, (i + 1) / totalPoints])
+    );
+    const tBufferLayout: GPUVertexBufferLayout = {
+        attributes: [
+            {
+                shaderLocation: 0,
+                offset: 0,
+                format: &quot;float32&quot;
+            }
+        ],
+        arrayStride: 4,
+        stepMode: &quot;vertex&quot;
+    };
+    const tBuffer = device.createBuffer({
+        size: t.byteLength,
+        usage: GPUBufferUsage.VERTEX,
+        mappedAtCreation: true
+    });
+    new Float32Array(tBuffer.getMappedRange()).set(t);
+    tBuffer.unmap();
+    return [tBuffer, tBufferLayout];
+}
+</code></pre>
+<p>Then, the encoder, render pass, pipeline- everything,</p>
+<pre><code class="language-typescript">const main = async () =&gt; {
+    const [_, device] = (await requestDevice())!;
+    const [context, format] = await getContext(device);
+    const shaderModule = await getShaderModule(device);
+
+    const [tBuffer, tBufferLayout] = await getVertexBuffer(device);
+    const encoder = device.createCommandEncoder();
+    const renderPassDescriptor: GPURenderPassDescriptor = {
+        colorAttachments: [{
+            view: context.getCurrentTexture().createView(),
+            clearValue: { r: 0.1, g: 0.1, b: 0.1, a: 1.0 },
+            storeOp: &quot;store&quot;,
+            loadOp: &quot;clear&quot;,
+        }],
+    }
+    const passEncoder = encoder.beginRenderPass(renderPassDescriptor);
+    const pipeline = device.createRenderPipeline({
+        vertex: {
+            module: shaderModule,
+            entryPoint: &quot;vertexMain&quot;,
+            buffers: [tBufferLayout]
+        },
+        fragment: {
+            module: shaderModule,
+            entryPoint: &quot;fragmentMain&quot;,
+            targets: [{
+                format: format
+            }]
+        },
+        primitive: {
+            topology: &quot;line-list&quot;,
+        },
+        layout: &quot;auto&quot;
+    });
+    passEncoder.setPipeline(pipeline);
+    passEncoder.setVertexBuffer(0, tBuffer);
+    passEncoder.draw(200);
+    passEncoder.end();
+    device.queue.submit([encoder.finish()]);
+}
+</code></pre>
+<p>Now, you can see the Bézier curve on the screen. The curve is defined by the control points, and the curve is evaluated at the given parameter <script type="math/tex">t</script>.</p>
+<h2 id="surface">Surface</h2>
+<p>We have understood two kinds of curves- now the surface is just a combination of two curves. The surface is defined as,</p>
+<p>
+<script type="math/tex; mode=display">
+Surface(u, v) = \sum_{i=0}^{n} \sum_{j=0}^{m} CP_{i, j} \cdot Weight_{i, j}(u, v)
+</script>
+</p>
+<p>The weight can simply be defined as the product of the weights of two base functions. That is, if you like, you can write that as,</p>
+<p>
+<script type="math/tex; mode=display">
+Surface(u, v) = \sum_{i=0}^{n} Weight_{i}(u) \sum_{j=0}^{m} CP_{i, j} \cdot Weight_{j}(v)
+</script>
+</p>
+<p>Please note that the result of the following part </p>
+<p>
+<script type="math/tex; mode=display">
+\sum_{j=0}^{m} CP_{i, j} \cdot Weight_{j}(v)
+</script>
+</p>
+<p>is a point. So if we fix a <script type="math/tex">v</script>, we get a curve. Since <script type="math/tex">u</script> and <script type="math/tex">v</script> are interchangeable, we can conclude that if we fix a <script type="math/tex">u</script>, we also get a curve.</p>
+<p>If we choose both Bézier curve for <script type="math/tex">u</script> and <script type="math/tex">v</script>, we have a Bézier surface. If we choose B-spline curve for <script type="math/tex">u</script> and <script type="math/tex">v</script>, we have a B-spline surface.</p>
+<p>So, surface is just a combination of two curves- we have drawn the curves, we can draw the surface. But since drawing 3D things requires us to, ugh, again, deal with all the perspective projection, lighting, and so on, we will not draw the surface with code in this tutorial.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>Okay, so this whole series ends. We have learned about the basic concepts of computer graphics, WebGPU, and some advanced topics like Bézier curve and B-spline curve. We have also learned about the shader language, WGSL, and how to load 3D models.</p>
+<p>Hope it is helpful for you.</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../js/jquery-3.6.0.min.js"></script>
+        <script src="../js/bootstrap.min.js"></script>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

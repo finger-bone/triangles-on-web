@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        <link rel="canonical" href="https://finger-bone.github.io/triangles-on-web/03/">
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Texture - Introduction to WebGPU</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/color-brewer.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="..">Introduction to WebGPU</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="dropdown active">
+                                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">2D Basics <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../01/" class="dropdown-item">Basic Setup</a>
+</li>
+                                    
+<li>
+    <a href="../02/" class="dropdown-item">Life Game</a>
+</li>
+                                    
+<li>
+    <a href="./" class="dropdown-item active">Texture</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">3D Basics <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../04/" class="dropdown-item">Orthographic Projection</a>
+</li>
+                                    
+<li>
+    <a href="../05/" class="dropdown-item">Perspective Projection</a>
+</li>
+                                    
+<li>
+    <a href="../06/" class="dropdown-item">Lighting</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="navitem">
+                                <a href="../07/" class="nav-link">WGSL</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../08/" class="nav-link">3D Models</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../09/" class="nav-link">Curves and Surfaces</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../02/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../04/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-level="1"><a href="#triangles-on-web-ch3-texture" class="nav-link">Triangles on Web Ch3 Texture</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#texture" class="nav-link">Texture</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#creating-texture" class="nav-link">Creating Texture</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#using-texture" class="nav-link">Using Texture</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="triangles-on-web-ch3-texture">Triangles on Web Ch3 Texture</h1>
+<p>In the last part, we created the life game with WebGPU. In this part, we will add texture to the game.</p>
+<p>Texture is a 2D image that can be used in shaders. It can be used to colorize the triangles, or to store data. In this part, we will use texture to colorize the triangles.</p>
+<h2 id="texture">Texture</h2>
+<p>Texture is simply a 2D image. It can be used in shaders to colorize the triangles. In WebGPU, texture is created by <code>device.createTexture</code> method. The texture is created with a <code>TextureDescriptor</code> object.</p>
+<h2 id="creating-texture">Creating Texture</h2>
+<p>Let's first look for a random image on the internet. I found a random image on <a href="https://www.freepik.com/free-vector/seamless-green-grass-pattern_13187581.htm#query=grass%20texture&amp;position=0&amp;from_view=keyword&amp;track=ais_hybrid&amp;uuid=d5a12492-4b98-443d-b2cb-858165b1202b">this website</a>. This is a grass texture by macrovector on Freepik.</p>
+<p>We need to load that firstly, as a bitmap. It is simple, use <code>fetch</code> to get the image, and use <code>createImageBitmap</code> to create a bitmap from the image.</p>
+<pre><code class="language-typescript">async function loadImageBitmap(url) {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    return await createImageBitmap(blob);
+}
+</code></pre>
+<p>Then load that bitmap into a texture,</p>
+<pre><code class="language-typescript">const texture = device.createTexture({
+    label: &quot;grass&quot;,
+    format: 'rgba8unorm',
+    size: [bitmap.width, bitmap.height],
+    usage: GPUTextureUsage.TEXTURE_BINDING |
+            GPUTextureUsage.COPY_DST |
+            GPUTextureUsage.RENDER_ATTACHMENT,
+});
+</code></pre>
+<p><code>TEXTURE_BINDING</code> is the specified usage for the texture. <code>COPY_DST</code> has already been introduced. <code>RENDER_ATTACHMENT</code> means that the texture can be directly rendered to. Later we will use <code>copyExternalImageToTexture</code>, so these usages are necessary.</p>
+<p>Now, let's copy,</p>
+<pre><code class="language-typescript">device.queue.copyExternalImageToTexture(
+    { source: bitmap, flipY: true },
+    { texture },
+    { width: bitmap.width, height: bitmap.height },
+);
+</code></pre>
+<p><code>copyExternalImageToTexture</code> copies the bitmap to the texture. <code>flipY</code> is necessary because the origin of the image is at the top-left corner, but the origin of the texture is at the bottom-left corner. However, for a grass texture, you can't see much difference.</p>
+<h2 id="using-texture">Using Texture</h2>
+<p>Now we have the texture, let's use it in the shader.</p>
+<p>Texture is just a picture, and the way picture is presented is by fragment shader. The fragment shader choose a pixel in the texture, and use that pixel as the color of the triangle, so that the texture is applied to the triangle.</p>
+<p>However, there might not be direct match between the displayed primitive and the texture. For example, the texture might be smaller than the primitive, or the texture might be larger than the primitive. In addition that, in the fragment, we only operate on the vertices.</p>
+<p>The way to solve this is texture coordinations. Texture coordinations are the coordinations in the texture. The texture coordinations are in the range of [0, 1], and the texture coordinations are used to choose the pixel in the texture.</p>
+<p>For example, if the texture coordinations are (0, 0), then the pixel at the top-left corner of the texture is chosen. If the texture coordinations are (1, 1), then the pixel at the bottom-right corner of the texture is chosen. As for the pixel between the pixels, the texture is interpolated.</p>
+<p>This process is called texture sampling. The texture is sampled by the texture coordinations, and the color of the pixel is chosen.</p>
+<p>Previously, we have loaded variable <code>texture</code> with the picture. Now, we need to load the texture into the shader. We also need a sampler to sample the texture. They are all just special bindings.</p>
+<p>We also add the texture coordinations to the vertex shader, and use <code>textureSample</code> to let the fragment shader sample the texture.</p>
+<pre><code class="language-typescript">const getShaderModule = async (device: GPUDevice): Promise&lt;GPUShaderModule&gt; =&gt; {
+    return device.createShaderModule({
+        label: &quot;shader&quot;,
+        code: `
+            @group(0) @binding(0) var&lt;storage&gt; states: array&lt;u32&gt;;
+            @group(0) @binding(2) var grass_texture: texture_2d&lt;f32&gt;;
+            @group(0) @binding(3) var grass_sampler: sampler;
+
+            struct VertexOutput {
+                @builtin(position) pos: vec4f,
+                @location(0) @interpolate(flat) cell: u32,
+                @location(1) texCoord: vec2&lt;f32&gt;,
+            };
+
+            @vertex
+            fn vertexMain(@location(0) pos: vec2f, @builtin(vertex_index) vertexIndex: u32) -&gt; VertexOutput {
+                var output: VertexOutput;
+                output.pos = vec4&lt;f32&gt;(pos, 0.0, 1.0);
+                output.cell = vertexIndex / 6;
+                output.texCoord = output.pos.xy * 0.5 + 0.5;
+                return output;
+            }
+            @fragment
+            fn fragmentMain(input: VertexOutput) -&gt; @location(0) vec4&lt;f32&gt; {
+                if(states[input.cell] == 0u) {
+                    discard;
+                }
+                return textureSample(grass_texture, grass_sampler, input.texCoord);
+            }
+        `
+    });
+}
+</code></pre>
+<p>Please note that the NDC is in the range of [-1, 1], so we need to convert it to [0, 1] by multiplying 0.5 and adding 0.5.</p>
+<p>The <code>vec2&lt;f32&gt;</code> is automatically interpolated by the rasterized, with the mode <code>@interpolate(perspective)</code>, which means that the texture coordinations are interpolated by the rasterize. Now, you can just regard it as a linear interpolation based on the coordinations.</p>
+<p>Now we need to pass the values with the bindings. Its the same as before, but we need to pass the texture and the sampler.</p>
+<pre><code class="language-typescript">const getBindGroupLayout = async (device: GPUDevice): Promise&lt;GPUBindGroupLayout&gt; =&gt; {
+    const bindGroupLayout = device.createBindGroupLayout({
+        entries: [{
+            binding: 0,
+            visibility: GPUShaderStage.FRAGMENT | GPUShaderStage.COMPUTE | GPUShaderStage.VERTEX,
+            buffer: {
+                type: &quot;read-only-storage&quot;
+            }
+        }, {
+            binding: 1,
+            visibility: GPUShaderStage.FRAGMENT | GPUShaderStage.COMPUTE,
+            buffer: {
+                type: &quot;storage&quot;
+            }
+        }, {
+            binding: 2,
+            visibility: GPUShaderStage.FRAGMENT,
+            texture: {}
+        }, {
+            binding: 3,
+            visibility: GPUShaderStage.FRAGMENT,
+            sampler: {}
+        }]
+    });
+    return bindGroupLayout;
+}
+</code></pre>
+<p>We have already created the texture, but not the sampler. The sampler is created by <code>device.createSampler</code> method.</p>
+<pre><code class="language-typescript">const getSampler = (device: GPUDevice): GPUSampler =&gt; {
+    return device.createSampler({
+        magFilter: &quot;linear&quot;,
+        minFilter: &quot;linear&quot;,
+    });
+}
+</code></pre>
+<p>We just created a simple sampler with linear interpolation. There are also other options, like <code>nearest</code> for nearest neighbor interpolation.</p>
+<p>Finally, we just change the bind group creation to include the texture and the sampler.</p>
+<pre><code class="language-typescript">const bindGroup = device.createBindGroup({
+    label: &quot;bind group&quot;,
+    layout: bindGroupLayout,
+    entries: [{
+        binding: 0,
+        resource: { buffer: statesStorageBuffer[step % 2] },
+    }, {
+        binding: 1,
+        resource: { buffer: statesStorageBuffer[(step + 1) % 2] },
+    }, {
+        binding: 2,
+        resource: texture.createView(),
+    }, {
+        binding: 3,
+        resource: sampler,
+    }]
+});
+</code></pre>
+<p>Note that you need to pass a view of the texture, not the texture itself.</p>
+<p>Now we can see that each cell shows part of the grass texture. The texture is applied to the triangles.</p>
+<p>If you want each cell to show the full picture, you can change the texture coordinations to the following,</p>
+<pre><code class="language-wgsl">@vertex
+fn vertexMain(@location(0) pos: vec2f, @builtin(vertex_index) vertexIndex: u32) -&gt; VertexOutput {
+    var output: VertexOutput;
+    output.pos = vec4&lt;f32&gt;(pos, 0.0, 1.0);
+    output.cell = vertexIndex / 6;
+    if(vertexIndex % 6 == 0) {
+        output.texCoord = vec2&lt;f32&gt;(0.0, 0.0);
+    } else if(vertexIndex % 6 == 1 || vertexIndex % 6 == 4) {
+        output.texCoord = vec2&lt;f32&gt;(1.0, 0.0);
+    } else if(vertexIndex % 6 == 2 || vertexIndex % 6 == 3) {
+        output.texCoord = vec2&lt;f32&gt;(0.0, 1.0);
+    } else {
+        output.texCoord = vec2&lt;f32&gt;(1.0, 1.0);
+    }
+    return output;
+}
+</code></pre>
+<p>Now, each cell shows the full picture, this is because the texture coordinations are set to the corners of the texture.</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../js/jquery-3.6.0.min.js"></script>
+        <script src="../js/bootstrap.min.js"></script>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

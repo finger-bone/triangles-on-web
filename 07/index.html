@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        <link rel="canonical" href="https://finger-bone.github.io/triangles-on-web/07/">
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>WGSL - Introduction to WebGPU</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/color-brewer.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="..">Introduction to WebGPU</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">2D Basics <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../01/" class="dropdown-item">Basic Setup</a>
+</li>
+                                    
+<li>
+    <a href="../02/" class="dropdown-item">Life Game</a>
+</li>
+                                    
+<li>
+    <a href="../03/" class="dropdown-item">Texture</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">3D Basics <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../04/" class="dropdown-item">Orthographic Projection</a>
+</li>
+                                    
+<li>
+    <a href="../05/" class="dropdown-item">Perspective Projection</a>
+</li>
+                                    
+<li>
+    <a href="../06/" class="dropdown-item">Lighting</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="navitem active">
+                                <a href="./" class="nav-link">WGSL</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../08/" class="nav-link">3D Models</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../09/" class="nav-link">Curves and Surfaces</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../06/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../08/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-level="1"><a href="#triangles-on-web-ch7-webgpu-shading-language" class="nav-link">Triangles on Web Ch7 WebGPU Shading Language</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#annotations" class="nav-link">Annotations</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#types" class="nav-link">Types</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#builtin-functions" class="nav-link">Builtin Functions</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#control-flow" class="nav-link">Control Flow</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#trivial" class="nav-link">Trivial</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="triangles-on-web-ch7-webgpu-shading-language">Triangles on Web Ch7 WebGPU Shading Language</h1>
+<p>We have used WebGPU shading language (wgsl) frequently, but we haven't actually talked about it in detail. In this chapter, we will talk about the syntax and semantics of wgsl. We mainly talks about its difference from universal programming languages like C and JavaScript.</p>
+<h2 id="annotations">Annotations</h2>
+<p>The very first significant difference is annotations starting with <code>@</code>. There are mainly two kinds of annotations, the function annotations and the parameters annotations.</p>
+<h3 id="function-annotations">Function Annotations</h3>
+<p>We have used only four of them so far, <code>@vertex</code>, <code>@fragment</code>, <code>@compute</code> and <code>@workgroup_size</code>. The first three are used to specify the type of the function, and the last one is used to specify the workgroup size of the compute shader. We have already introduced their usage in the previous chapters.</p>
+<h3 id="parameters-annotations">Parameters Annotations</h3>
+<p>Different from universal programming languages, shading language needs you to explicitly put the memory layout of the parameters and the return value of a function.</p>
+<p>We have already used <code>@builtin</code> and <code>@location</code>, now let's dive deeper into them.</p>
+<p>Let's consider the following shader function:</p>
+<pre><code class="language-wgsl">struct VertexInput {
+    @builtin(vertex_index) index: u32,
+    @location(0) position: vec3f,
+    @location(1) norm: vec3f,
+};
+
+struct VertexOutput {
+    @builtin(position) position: vec4f,
+    @location(0) norm: vec3f,
+};
+
+@vertex
+fn vertex_main(input: VertexInput) -&gt; VertexOutput {
+    // ...
+}
+</code></pre>
+<p><code>struct</code> in the shading language is more like that in C language- it specifies a memory layout.</p>
+<p>First let's look at the input- the input struct of a function in shading language consists of two parts, the locational fields and the builtin fields.</p>
+<p>The locational fields are specified by <code>@location</code>, which specifies the location of the field in the memory. For example, the first chunk of the memory is the normal vector, which is specified by <code>@location(1) norm: vec3f</code>.</p>
+<p>However, aside from the locational fields, there are some hidden field that is automatically filled by the WebGPU runtime. For example, the <code>vertex_index</code> is automatically filled by the WebGPU runtime. They are distinct from the locational parameters and handled by the WebGPU runtime, thus you just use <code>@builtin</code> to specify them, without the need to specify the location.</p>
+<p>The input layout is specified by the vertex buffer layout in the pipeline layout. Whereas the output layout of the vertex shader is determined by the WebGPU runtime- a builtin position field is required.</p>
+<p>As for the fragment shader, the input is just simply the output of the vertex shader, and the output is dependent on the attachments you defined. For color attachments, it is locational. For depth attachment, there is a builtin <code>@builtin(frag_depth)</code>.</p>
+<p>You can also tear apart teh struct and specify the location or builtin field directly in the function signature. For example:</p>
+<pre><code class="language-wgsl">@vertex
+fn vertex_main(
+    @builtin(vertex_index) index: u32,
+    @location(0) position: vec3f,
+    @location(1) norm: vec3f,
+) -&gt; VertexOutput {
+    // ...
+}
+</code></pre>
+<h2 id="types">Types</h2>
+<p>Types here functions the same but have many builtins for vectors and matrix, commonly used are,</p>
+<ul>
+<li><code>u32</code>, <code>i32</code>, <code>f32</code>, for unsigned integer, signed integer and float. The number signals the number of bits.</li>
+<li><code>vec2&lt;T&gt;</code>, <code>vec3&lt;T&gt;</code>, <code>vec4&lt;T&gt;</code>, for vectors. Because <code>f32</code> vector is used most frequently, you can use <code>vec2f</code>, <code>vec3f</code>, <code>vec4f</code> as shorthand.</li>
+<li><code>mat2x2&lt;T&gt;</code>, <code>mat3x3&lt;T&gt;</code>, <code>mat4x4&lt;T&gt;</code>, for matrices. Because <code>f32</code> matrix is used most frequently, you can use <code>mat2x2f</code>, <code>mat3x3f</code>, <code>mat4x4f</code> as shorthand. There are also <code>mat2x3</code>, <code>mat3x2</code>, <code>mat3x4</code>, <code>mat4x3</code> and <code>mat2x4</code>, <code>mat4x2</code> for other combinations.</li>
+<li><code>bool</code>, <code>bvec2</code>, <code>bvec3</code>, <code>bvec4</code>, for boolean values.</li>
+<li><code>sampler</code>, <code>sampler_comparison</code>, <code>sampler_shadow</code>, for samplers.</li>
+</ul>
+<h2 id="builtin-functions">Builtin Functions</h2>
+<p>There are many builtin functions in the shading language,</p>
+<ul>
+<li>math functions, like <code>sin</code>, <code>cos</code>, <code>ceil</code>, <code>floor</code>, <code>clamp</code>, <code>exp</code>, etc.</li>
+<li>type converters, like <code>f32</code>.</li>
+<li>sampler functions, like <code>textureSample</code>. <code>textureSample</code> returns a <code>vec4f</code> for color, we have introduced it in the previous chapters.</li>
+<li>derivative functions, like <code>dpdx</code> or <code>dpdy</code>. Such functions are only valid in fragment shaders. How they calculate the derivatives is special- they take a two times two pixel block, then calculate the difference between the pixels, then divide by the size of the block, as is indicated by the <code>@builtin(position)</code>.</li>
+<li>vector functions, like <code>dot</code>, <code>cross</code>, <code>normalize</code>. Besides, since lighting calculation is frequently used, there are also <code>reflect</code>, <code>refract</code> and <code>faceforward</code> functions.</li>
+<li>matrix functions, like <code>matrixCompMult</code>, <code>outerProduct</code>, <code>transpose</code>, <code>inverse</code>.</li>
+<li>packing functions, like <code>pack4x8snorm</code>. Basically, it just takes a vector and pack it into a 32-bit integer. The <code>snorm</code> suffix means that the vector is normalized to the range of [-1, 1]. Such functions are used in the texture sampling process.</li>
+<li>unpacking functions, like <code>unpack4x8snorm</code>. It is the reverse of the packing functions.</li>
+</ul>
+<h2 id="control-flow">Control Flow</h2>
+<p>The control flow is similar to that in C language, but there are some differences.</p>
+<ul>
+<li>There is no <code>switch</code> statement.</li>
+<li>There is no <code>goto</code> statement.</li>
+<li>You can use <code>discard</code> to abandon the current fragment.</li>
+</ul>
+<h2 id="trivial">Trivial</h2>
+<p>Here are some more trivial differences,</p>
+<ul>
+<li>There is no <code>null</code> value.</li>
+<li>There is no <code>undefined</code> value.</li>
+<li><code>++</code> and <code>--</code> operators are not supported, so are the <code>+=</code>, <code>-=</code>, or alike.</li>
+<li><code>let</code> for constant and <code>var</code> for variable.</li>
+</ul></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../js/jquery-3.6.0.min.js"></script>
+        <script src="../js/bootstrap.min.js"></script>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

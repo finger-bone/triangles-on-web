@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        <link rel="canonical" href="https://finger-bone.github.io/triangles-on-web/02/">
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Life Game - Introduction to WebGPU</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/color-brewer.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="..">Introduction to WebGPU</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="dropdown active">
+                                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">2D Basics <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../01/" class="dropdown-item">Basic Setup</a>
+</li>
+                                    
+<li>
+    <a href="./" class="dropdown-item active">Life Game</a>
+</li>
+                                    
+<li>
+    <a href="../03/" class="dropdown-item">Texture</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">3D Basics <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../04/" class="dropdown-item">Orthographic Projection</a>
+</li>
+                                    
+<li>
+    <a href="../05/" class="dropdown-item">Perspective Projection</a>
+</li>
+                                    
+<li>
+    <a href="../06/" class="dropdown-item">Lighting</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="navitem">
+                                <a href="../07/" class="nav-link">WGSL</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../08/" class="nav-link">3D Models</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../09/" class="nav-link">Curves and Surfaces</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../01/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../03/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-level="1"><a href="#triangles-on-web-ch2-creating-the-life-game" class="nav-link">Triangles On Web Ch2 Creating the Life Game</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#the-game-of-life" class="nav-link">The Game of Life</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#clean-up-the-code" class="nav-link">Clean Up the Code</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#draw-the-grid" class="nav-link">Draw the Grid</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#handle-the-states" class="nav-link">Handle the States</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#update-the-states" class="nav-link">Update the States</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="triangles-on-web-ch2-creating-the-life-game">Triangles On Web Ch2 Creating the Life Game</h1>
+<p>We will build a cellular automaton that simulates the game of life. The game of life is a zero-player game, meaning that its evolution is determined by its initial state, requiring no further input. One interacts with the Game of Life by creating an initial configuration and observing how it evolves.</p>
+<p>In the last chapter, we learnt about WebGPU basics, and now, we will use that knowledge to create a simple game of life simulation. We will use the GPU to perform the calculations and render the game of life.</p>
+<h2 id="the-game-of-life">The Game of Life</h2>
+<p>The Game of Life is a cellular automaton devised by the British mathematician John Horton Conway in 1970.</p>
+<p>Basically, there is a gird of any size, and each node in the grid can either be empty or alive. The game evolves in steps, and at each step, the following rules are applied to each node:</p>
+<ol>
+<li>If the cell is alive, then it stays alive if it has either 2 or 3 live neighbors, otherwise it dies.</li>
+<li>If the cell is empty, then it springs to life only in the case that it has 3 live neighbors, otherwise it remains empty.</li>
+</ol>
+<p>By neighboring, we mean the 8 cells surrounding the cell.</p>
+<h2 id="clean-up-the-code">Clean Up the Code</h2>
+<p>Before we start, let's clean up the code from the last chapter. It's just a bit refactoring.</p>
+<pre><code class="language-typescript">const requestDevice = async (): Promise&lt;[GPUAdapter, GPUDevice] | null&gt; =&gt; {
+    const adapter = await navigator.gpu.requestAdapter();
+    if (!adapter) {
+        console.error('WebGPU not supported');
+        return null;
+    }
+    const device = await adapter.requestDevice();
+    console.log(device);
+    return [adapter, device];
+}
+
+const getContext = async (device: GPUDevice): Promise&lt;[GPUCanvasContext, GPUTextureFormat]&gt; =&gt; {
+    const canvas = document.getElementById('app') as HTMLCanvasElement;
+    const context = canvas.getContext(&quot;webgpu&quot;)!;
+    const canvasFormat = navigator.gpu.getPreferredCanvasFormat();
+    context.configure({
+        device: device,
+        format: canvasFormat,
+    });
+    return [context, canvasFormat];
+}
+
+const getShaderModule = async (device: GPUDevice): Promise&lt;GPUShaderModule&gt; =&gt; {
+    return device.createShaderModule({
+        label: &quot;shader&quot;,
+        code: `
+            @vertex
+            fn vertexMain(@location(0) pos: vec2f) -&gt; @builtin(position) vec4f {
+                return vec4f(pos, 0, 1);
+            }
+            @fragment
+            fn fragmentMain() -&gt; @location(0) vec4&lt;f32&gt; {
+                return vec4&lt;f32&gt;(1.0, 1.0, 0.0, 1.0);
+            }
+        `
+    });
+}
+
+const getBuffer = async (device: GPUDevice): Promise&lt;[GPUBuffer, GPUVertexBufferLayout]&gt; =&gt; {
+    const vertices = [
+        0.0, 0.0,
+        0.0, 1.0,
+        1.0, 0.0,
+
+        1.0, 1.0,
+        0.0, 1.0,
+        1.0, 0.0,
+    ]
+    const vertexBuffer = device.createBuffer({
+        size: vertices.length * 4,
+        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+        mappedAtCreation: true,
+    });
+    new Float32Array(vertexBuffer.getMappedRange()).set(vertices);
+    const vertexBufferLayout: GPUVertexBufferLayout = {
+        arrayStride: 8,
+        attributes: [{
+            format: &quot;float32x2&quot;,
+            offset: 0,
+            shaderLocation: 0,
+        }],
+    };
+    vertexBuffer.unmap();
+    return [vertexBuffer, vertexBufferLayout];
+}
+
+
+const main = async () =&gt; {
+    const [_, device] = (await requestDevice())!;
+    const [context, canvasFormat] = await getContext(device);
+    const shaderModule = await getShaderModule(device);
+    const [vertexBuffer, vertexBufferLayout] = await getBuffer(device);
+    const pipeline = device.createRenderPipeline({
+        label: &quot;Cell pipeline&quot;,
+        layout: &quot;auto&quot;,
+        vertex: {
+            module: shaderModule,
+            entryPoint: &quot;vertexMain&quot;,
+            buffers: [vertexBufferLayout]
+        },
+        fragment: {
+            module: shaderModule,
+            entryPoint: &quot;fragmentMain&quot;,
+            targets: [{
+                format: canvasFormat
+            }]
+        }
+    });
+    const encoder = device.createCommandEncoder();
+    const pass = encoder.beginRenderPass({
+        colorAttachments: [{
+            view: context.getCurrentTexture().createView(),
+            loadOp: &quot;clear&quot;,
+            clearValue: { r: 0.1, g: 0.3, b: 0.8, a: 1.0 },
+            storeOp: &quot;store&quot;,
+        }]
+    });
+    pass.setPipeline(pipeline);
+    pass.setVertexBuffer(0, vertexBuffer);
+    pass.draw(6);
+    pass.end();
+    const commandBuffer = encoder.finish();
+    device.queue.submit([commandBuffer]);
+}
+
+main()
+</code></pre>
+<h2 id="draw-the-grid">Draw the Grid</h2>
+<p>We will start by drawing all the cells on the screen, which forms a grid.</p>
+<p>First we generate all the points for each grid cell. A grid is a 2D array of cells, and each cell is a square. We will draw the grid as a set of triangles. Each cell will be represented by two triangles.</p>
+<pre><code class="language-typescript">const grid_length = 64;
+const getBuffer = async (device: GPUDevice): Promise&lt;[GPUBuffer, GPUVertexBufferLayout]&gt; =&gt; {
+    const vertexBuffer = device.createBuffer({
+        size: grid_length * grid_length * 4 * 12,
+        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+        mappedAtCreation: true,
+    });
+    const vertices = new Float32Array(grid_length * grid_length * 12);
+    // starts from -1 to 1
+    const step = 2 / grid_length;
+    const padding = step / 4;
+    for(let i = 0; i &lt; grid_length; i++) {
+        for(let j = 0; j &lt; grid_length; j++) {
+            const top_left_x = -1 + i * step;
+            const top_left_y = 1 - j * step;
+            const bottom_right_x = top_left_x + step;
+            const bottom_right_y = top_left_y - step;
+            const index = (i * grid_length + j) * 12;
+
+            vertices[index] = top_left_x + padding;
+            vertices[index + 1] = top_left_y - padding;
+
+            vertices[index + 2] = bottom_right_x - padding;
+            vertices[index + 3] = top_left_y - padding;
+
+            vertices[index + 4] = top_left_x + padding;
+            vertices[index + 5] = bottom_right_y + padding;
+
+            vertices[index + 6] = top_left_x + padding;
+            vertices[index + 7] = bottom_right_y + padding;
+
+            vertices[index + 8] = bottom_right_x - padding;
+            vertices[index + 9] = top_left_y - padding;
+
+            vertices[index + 10] = bottom_right_x - padding;
+            vertices[index + 11] = bottom_right_y + padding;
+        }
+    }
+    new Float32Array(vertexBuffer.getMappedRange()).set(vertices);
+    const vertexBufferLayout: GPUVertexBufferLayout = {
+        arrayStride: 8,
+        attributes: [{
+            format: &quot;float32x2&quot;,
+            offset: 0,
+            shaderLocation: 0,
+        }],
+    };
+    vertexBuffer.unmap();
+    return [vertexBuffer, vertexBufferLayout];
+}
+</code></pre>
+<p>Then change the draw pass to the correct number,</p>
+<pre><code class="language-typescript">pass.draw(grid_length * grid_length * 6);
+</code></pre>
+<p>Now, you should see a grid of cells on the screen.</p>
+<h2 id="handle-the-states">Handle the States</h2>
+<p>Now we need to deal with the states of each cell. Here is our first issue- how can we pass the states of each cell to the GPU? Previously, we learnt about passing data to GPU as shader parameters. But in this case, we can't do that since every cell needs access to the state of all other cells. We can't pass the state of all cells as a parameter to the shader.</p>
+<p>The solution is a bind group. A bind group is a collection of resources that are bound to the pipeline. We can directly create an array and bind it to a buffer, then pass it to the shader.</p>
+<p>We can simply use <code>u32</code> to represent the state of each cell. We will use 0 to represent an empty cell and 1 to represent a live cell, please note that this is definitely not the most economical way to represent the state of a cell, but it's the simplest way for now.</p>
+<p>To create a bind group, first we initialize the data for it. Here, we will use a random pattern, where for each cell, there is a 25% chance that it will be alive.</p>
+<pre><code class="language-typescript">const states = new Uint32Array(grid_length * grid_length);
+for(let i = 0; i &lt; grid_length * grid_length; i++) {
+    states[i] = Math.random() &lt; 0.25 ? 1 : 0;
+}
+</code></pre>
+<p>Then we create a buffer and bind group for it. The buffer for vertex shader input is vertex buffer, and for now, we just need a buffer that stores the states of each cell, so we use a storage buffer.</p>
+<pre><code class="language-typescript">const statesStorageBuffer = device.createBuffer({
+    size: grid_length * grid_length * 4,
+    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+});
+</code></pre>
+<p>Previously, we used the map function to get the mapped range of the buffer, but this time, we can use <code>device.queue.writeBuffer</code>, which is another way to write data to the buffer. For mapped range, it is a complete map and thus suitable for constantly updating, small data, while <code>writeBuffer</code> is suitable for writing data once.</p>
+<pre><code class="language-typescript">device.queue.writeBuffer(statesStorageBuffer, 0, states.buffer);
+</code></pre>
+<p>The second parameter is an offset, obviously, it should be a zero here.</p>
+<p>To access the buffer in the shader, we need to create a bind group layout. A bind group layout is a description of the resources that a bind group will contain.</p>
+<pre><code class="language-typescript">const bindGroup = device.createBindGroup({
+  label: &quot;bind group&quot;,
+  layout: pipeline.getBindGroupLayout(0),
+  entries: [{
+    binding: 0,
+    resource: { buffer: statesStorageBuffer },
+  }],
+});
+</code></pre>
+<p>Here we create a bind group with a single entry, which is a buffer that stores the states of each cell.</p>
+<p>Typically, you need to manually create a layout. But we created pipeline with <code>layout: "auto"</code>, so we can just use <code>pipeline.getBindGroupLayout(0)</code> to get the layout. It will look for the shader and create the layout for you.</p>
+<p>Then we need to update the render pass to bind the bind group.</p>
+<pre><code class="language-typescript">pass.setBindGroup(0, bindGroup);
+</code></pre>
+<p>So we create a bind group, which contains a buffer that stores the states of each cell, and bind it to the pipeline.</p>
+<p>To access the buffer in the shader, we need to update the shader code.</p>
+<pre><code class="language-typescript">const getShaderModule = async (device: GPUDevice): Promise&lt;GPUShaderModule&gt; =&gt; {
+    return device.createShaderModule({
+        label: &quot;shader&quot;,
+        code: `
+            @group(0) @binding(0) var&lt;storage&gt; states: array&lt;u32&gt;;
+
+            @vertex
+            fn vertexMain(@location(0) pos: vec2f) -&gt; @builtin(position) vec4f {
+                return vec4f(pos, 0, 1);
+            }
+            @fragment
+            fn fragmentMain() -&gt; @location(0) vec4&lt;f32&gt; {
+                return vec4&lt;f32&gt;(1.0, 1.0, 0.0, 1.0);
+            }
+        `
+    });
+}
+</code></pre>
+<p>Here, the <code>var&lt;storage&gt;</code> is used to declare a storage buffer, and <code>array&lt;u32&gt;</code> is used to declare an array of <code>u32</code>. The <code>@group(0) @binding(0)</code> is used to bind the buffer to the bind group.</p>
+<p>Now we can access the buffer in the shader. However, there is another issue. How can we knew the index of the cell to be rendered?</p>
+<p>We just can just pass the index of the cell to the vertex shader. To do so, we can add a new parameter to the vertex shader.</p>
+<pre><code class="language-wgsl">@group(0) @binding(0) var&lt;storage&gt; states: array&lt;u32&gt;;
+
+@vertex
+fn vertexMain(@location(0) pos: vec2f, @location(1) cell: vec2f) -&gt; @builtin(position) vec4f {
+
+    return vec4f(pos, 0, 1);
+}
+</code></pre>
+<p>Then we need to update the vertex buffer layout.</p>
+<pre><code class="language-typescript">const vertexBufferLayout: GPUVertexBufferLayout = {
+    arrayStride: 12,
+    attributes: [{
+        format: &quot;float32x2&quot;,
+        offset: 0,
+        shaderLocation: 0,
+    }, {
+        format: &quot;float32x2&quot;,
+        offset: 8,
+        shaderLocation: 1,
+    }],
+};
+</code></pre>
+<p>However, a simpler way would be using vertex index. The vertex index is the index of the vertex in the vertex buffer. We can use the vertex index to calculate the cell index.</p>
+<pre><code class="language-wgsl">@group(0) @binding(0) var&lt;storage&gt; states: array&lt;u32&gt;;
+
+@vertex
+fn vertexMain(@location(0) pos: vec2f, @builtin(vertex_index) vertexIndex: u32) -&gt; @builtin(position) vec4f {
+    let cell_index = vertexIndex / 6;
+    return vec4f(pos, 0, 1);
+}
+</code></pre>
+<p>But the problem is, vertex shader can only take parameters and return position, so we can not discard certain vertices in vertex shader. We need to use the fragment shader to do that. But how we can pass the state to the fragment shader?</p>
+<p>Actually, you can just use a struct. So long that the returned value of the vertex shader is a struct with a field of type <code>@builtin(position) vec4f</code>, the fragment shader can access the struct.</p>
+<pre><code class="language-wgsl">struct VertexOutput {
+    @builtin(position) pos: vec4&lt;f32&gt;,
+    @location(0) @interpolate(flat) cell: u32,
+};
+
+@group(0) @binding(0) var&lt;storage&gt; states: array&lt;u32&gt;;
+
+@vertex
+fn vertexMain(@location(0) pos: vec2f, @builtin(vertex_index) vertexIndex: u32) -&gt; VertexOutput {
+    let cell_index = vertexIndex / 6;
+    var output: VertexOutput;
+    output.pos = vec4f(gridPos, 0, 1);
+    output.cell = cell;
+    return output;
+}
+</code></pre>
+<p>Please note that, fragment shader is responsible for rendering every pixel, but vertex shader output only the vertex. When the vertices are passed, they are first ensemble into a primitive, then the fragment shader is called for each pixel in the primitive. This is why we need a <code>@interpolate(flat)</code> for the cell. This tells the pipeline that when dealing with the value of pixels that are not vertices, it should use the flatten value of the primitive- that is, the value of the vertex.</p>
+<p>Previously, we passed no parameters to the fragment shader. Actually, it just accepts the output from the vertex shader, so if you want the position, if vertex only return position, then you can just use <code>pos</code> in the fragment shader.</p>
+<pre><code class="language-wgsl">@fragment
+fn fragmentMain(@builtin(position) pos: vec4f) -&gt; vec4&lt;f32&gt; {
+    return vec4&lt;f32&gt;(1.0, 1.0, 0.0, 1.0);
+}
+</code></pre>
+<p>But now, since we have a struct, we can access the field of the struct in the fragment shader.</p>
+<p>In the fragment, you can discard some nodes based on the state. The discarded nodes will not be rendered. However, for example, if in a triangle, one vertex is discarded, the whole triangle will be discarded.</p>
+<pre><code class="language-wgsl">@fragment
+fn fragmentMain(input: VertexOutput) -&gt; @location(0) vec4&lt;f32&gt; {
+    if(states[input.cell] == 0u) {
+        discard;
+    }
+    return vec4&lt;f32&gt;(1.0, 1.0, 0.0, 1.0);
+}
+</code></pre>
+<p>Now, you should only see part of the grid, where the cells are alive initially.</p>
+<h2 id="update-the-states">Update the States</h2>
+<p>However, our cells are not alive- we have to update the states of each cell.</p>
+<p>To run computation on GPU, instead of vertex shader and fragment shader, we can use compute shader. A compute shader is a shader stage that is used to perform general-purpose computation on the GPU. It is used to perform calculations that are not necessarily related to rendering.</p>
+<p>For computation shader, we need to create a new shader module.</p>
+<pre><code class="language-typescript">const getComputationShaderModule = async (device: GPUDevice): Promise&lt;GPUShaderModule&gt; =&gt; {
+    return device.createShaderModule({
+        label: &quot;computation shader&quot;,
+        code: `
+            @group(0) @binding(0) var&lt;storage&gt; states: array&lt;u32&gt;;
+
+            @compute
+            @workgroup_size(${workgroup_size}, ${workgroup_size})
+            fn computeMain() {
+
+            }
+        `
+    });
+}
+</code></pre>
+<p>We have something unique for the compute shader- <code>@workgroup_size</code>. The workgroup size is the number of threads in a workgroup. The workgroup size is a 3D vector, and the typical maximum size is 256x256x64, may vary depending on the device, in my Mac, it's only capable of up to <code>16</code>.</p>
+<p>If you want to do, for example, computation over <code>grid_length</code> by <code>grid_length</code> cells, if it exceeds the workgroup size, you can make the workgroup size smaller. When the actual computation is done, it's done by a <code>workgroup_size</code> times <code>workgroup_size</code> every time. It slides over the grid. <code>global_invocation_id</code> is still the actual index of the cell over the whole grid.</p>
+<p>By omitting the parameters, it is the same as setting that dimension to 1.</p>
+<p>Then the same pipeline and pass,</p>
+<pre><code class="language-typescript">const computationShaderModule = await getComputationShaderModule(device);
+const computationPipeline = device.createComputePipeline({
+    label: &quot;computation pipeline&quot;,
+    layout: &quot;auto&quot;,
+    compute: {
+        module: computationShaderModule,
+        entryPoint: &quot;computeMain&quot;,
+    }
+});
+const computationEncoder = device.createCommandEncoder();
+const computationPass = computationEncoder.beginComputePass();
+</code></pre>
+<p>Before going further, we need to introduce a two-buffer system for updating states. Basically, since rendering is a long-lasting process, we can't update the states while rendering. So we need to use two buffers, one for the current state and one for the next state. After each frame, we swap the buffers.</p>
+<p>Now we extract our code that is responsible for rendering, we isolate them and pass an extra parameter, the step.</p>
+<pre><code>const render = async (step: number) =&gt; {
+    const encoder = device.createCommandEncoder();
+    const pass = encoder.beginRenderPass({
+        colorAttachments: [{
+            view: context.getCurrentTexture().createView(),
+            loadOp: &quot;clear&quot;,
+            clearValue: { r: 0.1, g: 0.3, b: 0.6, a: 1.0 },
+            storeOp: &quot;store&quot;,
+        }]
+    });
+    const bindGroup = device.createBindGroup({
+        label: &quot;bind group&quot;,
+        layout: pipeline.getBindGroupLayout(0),
+        entries: [{
+            binding: 0,
+            resource: { buffer: statesStorageBuffer },
+        }],
+    });
+    pass.setPipeline(pipeline);
+    pass.setBindGroup(0, bindGroup);
+    pass.setVertexBuffer(0, vertexBuffer);
+    pass.draw(grid_length * grid_length * 6);
+    pass.end();
+    const commandBuffer = encoder.finish();
+    device.queue.submit([commandBuffer]);
+}
+render(0);
+</code></pre>
+<p>Instead of one buffer, we use two buffer to allow switching between two.</p>
+<pre><code class="language-typescript">const statesStorageBuffer = [
+    device.createBuffer({
+        size: grid_length * grid_length * 4,
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    }),
+    device.createBuffer({
+        size: grid_length * grid_length * 4,
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    })
+]
+device.queue.writeBuffer(statesStorageBuffer[0], 0, states.buffer);
+</code></pre>
+<p>Then, when rendering, we need to bind the correct buffer. Since we will be swapping the buffers, we need to use the modulo operator to get the correct buffer.</p>
+<pre><code class="language-typescript">const bindGroup = device.createBindGroup({
+    label: &quot;bind group&quot;,
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [{
+        binding: 0,
+        resource: { buffer: statesStorageBuffer[step % 2] },
+    }],
+});
+</code></pre>
+<p>And lastly,</p>
+<pre><code class="language-typescript">let step = 0;
+setInterval(() =&gt; {
+    render(step);
+    step++;
+    step = step % 2;
+}, 1000);
+</code></pre>
+<p>We will see the grid of cells updating every second. The second state is all the cells are dead, since we didn't update the states.</p>
+<p>Now let's write the actual computation shader. Now we have two buffers and will be switching between them. So after every rendering, we just use one as the previous state, and write the states to the other buffer, so that the next rendering will use the updated states.</p>
+<p>Previously, we could only read from the buffer, in order to write to the buffer in the wsgl, we need to specify <code>read_write</code> in the <code>var</code> declaration.</p>
+<pre><code class="language-wgsl">@group(0) @binding(1) var&lt;storage, read_write&gt; states: array&lt;u32&gt;;
+</code></pre>
+<p>Note that we don't need to change GPU usage, since that is how CPU will interact with the buffer, where as now, buffers are handled completely by GPU except for the first write.</p>
+<p>Then we can write the computation shader.</p>
+<pre><code class="language-wgsl">@group(0) @binding(0) var&lt;storage&gt; states: array&lt;u32&gt;;
+@group(0) @binding(1) var&lt;storage, read_write&gt; next_states: array&lt;u32&gt;;
+
+@compute
+@workgroup_size(${grid_length}, ${grid_length})
+fn computeMain(@builtin(global_invocation_id) cell: vec3u) {
+
+}
+</code></pre>
+<p>The compute shader is executed in parallel, and the <code>global_invocation_id</code> is the global index of the thread. It is a <code>vec3u</code>. For example, for the first task executaed, it is <code>0, 0, 0</code>, then increase for the next task- though please note that they are computed parallelly.</p>
+<p>We can just use <code>cell.x</code>, <code>cell.y</code> as the index of the cell. That is, for task <code>x, y, z</code>, we deal with the state of the cell at <code>x, y</code>.</p>
+<pre><code class="language-typescript">const getComputationShaderModule = async (device: GPUDevice): Promise&lt;GPUShaderModule&gt; =&gt; {
+    return device.createShaderModule({
+        label: &quot;computation shader&quot;,
+        code: `
+            @group(0) @binding(0) var&lt;storage&gt; states: array&lt;u32&gt;;
+            @group(0) @binding(1) var&lt;storage, read_write&gt; next_states: array&lt;u32&gt;;
+
+            @compute
+            @workgroup_size(${workgroup_size}, ${workgroup_size})
+            fn computeMain(@builtin(global_invocation_id) cell: vec3u) {
+                let index = cell.x * ${grid_length} + cell.y;
+                var count = 0u;
+                for(var i: i32 = -1; i &lt; 2; i++) {
+                    for(var j: i32 = -1; j &lt; 2; j++) {
+                        if(i == 0 &amp;&amp; j == 0) {
+                            continue;
+                        }
+                        let x = i32(cell.x) + i;
+                        let y = i32(cell.y) + j;
+                        if(x &gt;= 0 &amp;&amp; x &lt; ${grid_length} &amp;&amp; y &gt;= 0 &amp;&amp; y &lt; ${grid_length}) {
+                            count += states[x * ${grid_length} + y];
+                        }
+                    }
+                }
+                if(states[index] == 1u) {
+                    if(count &lt; 2u || count &gt; 3u) {
+                        next_states[index] = 0u;
+                    } else {
+                        next_states[index] = 1u;
+                    }
+                } else {
+                    if(count == 3u) {
+                        next_states[index] = 1u;
+                    } else {
+                        next_states[index] = 0u;
+                    }
+                }
+            }
+        `
+    });
+}
+</code></pre>
+<p>Then the rest of the code, they are the same.</p>
+<pre><code class="language-typescript">const computationShaderModule = await getComputationShaderModule(device);
+const computationEncoder = device.createCommandEncoder();
+const computationPass = computationEncoder.beginComputePass();
+</code></pre>
+<p>However, we now want two buffers be shared for the two pipelines, since they will create their respective bind group layout. We need to make sure that the two bind groups are compatible.</p>
+<pre><code class="language-typescript">const bindGroupLayout = device.createBindGroupLayout({
+    entries: [{
+        binding: 0,
+        visibility: GPUShaderStage.FRAGMENT | GPUShaderStage.COMPUTE | GPUShaderStage.VERTEX,
+        buffer: {
+            type: &quot;read-only-storage&quot;
+        }
+    }, {
+        binding: 1,
+        visibility: GPUShaderStage.FRAGMENT | GPUShaderStage.COMPUTE,
+        buffer: {
+            type: &quot;storage&quot;
+        }
+    }]
+});
+const pipelineLayout = device.createPipelineLayout({
+    bindGroupLayouts: [bindGroupLayout]
+});
+const pipeline = device.createRenderPipeline({
+    label: &quot;pipeline&quot;,
+    layout: pipelineLayout,
+    vertex: {
+        module: shaderModule,
+        entryPoint: &quot;vertexMain&quot;,
+        buffers: [vertexBufferLayout]
+    },
+    fragment: {
+        module: shaderModule,
+        entryPoint: &quot;fragmentMain&quot;,
+        targets: [{
+            format: canvasFormat
+        }]
+    }
+});
+const computeShaderModule = await getComputationShaderModule(device);
+const computePipeline = device.createComputePipeline({
+    layout: pipelineLayout,
+    compute: {
+        module: computeShaderModule,
+        entryPoint: &quot;computeMain&quot;
+    }
+});
+</code></pre>
+<p>Then we can create the bind group.</p>
+<pre><code class="language-typescript">const bindGroup = device.createBindGroup({
+    label: &quot;bind group&quot;,
+    layout: bindGroupLayout,
+    entries: [{
+        binding: 0,
+        resource: { buffer: statesStorageBuffer[step % 2] },
+    }, {
+        binding: 1,
+        resource: { buffer: statesStorageBuffer[(step + 1) % 2] },
+    }]
+});
+</code></pre>
+<p>And lastly, before the encoder finishes, we need to dispatch the computation.</p>
+<pre><code class="language-typescript">const computePass = encoder.beginComputePass();
+computePass.setPipeline(computePipeline);
+computePass.setBindGroup(0, bindGroup);
+const factor = Math.floor(grid_length / workgroup_size);
+computePass.dispatchWorkgroups(factor, factor)
+computePass.end();
+</code></pre>
+<p>Here for the workgroup, if the total computation is <code>x</code> by <code>y</code> by <code>z</code>, and the workgroup size is <code>a</code> by <code>b</code> by <code>c</code>, then the workgroup size is <code>Math.ceil(x / a)</code>, <code>Math.ceil(y / b)</code>, <code>Math.ceil(z / c)</code>. Every time, <code>x</code> by <code>y</code> by <code>z</code> cells are computed.</p>
+<p>Now, the complete code is as follows.</p>
+<pre><code class="language-typescript">const grid_length = 64;
+const workgroup_size = 8;
+
+const requestDevice = async (): Promise&lt;[GPUAdapter, GPUDevice] | null&gt; =&gt; {
+    const adapter = await navigator.gpu.requestAdapter();
+    if (!adapter) {
+        console.error('WebGPU not supported');
+        return null;
+    }
+    const device = await adapter.requestDevice();
+    console.log(device);
+    return [adapter, device];
+}
+
+const getContext = async (device: GPUDevice): Promise&lt;[GPUCanvasContext, GPUTextureFormat]&gt; =&gt; {
+    const canvas = document.getElementById('app') as HTMLCanvasElement;
+    const context = canvas.getContext(&quot;webgpu&quot;)!;
+    const canvasFormat = navigator.gpu.getPreferredCanvasFormat();
+    context.configure({
+        device: device,
+        format: canvasFormat,
+    });
+    return [context, canvasFormat];
+}
+
+const getShaderModule = async (device: GPUDevice): Promise&lt;GPUShaderModule&gt; =&gt; {
+    return device.createShaderModule({
+        label: &quot;shader&quot;,
+        code: `
+            @group(0) @binding(0) var&lt;storage&gt; states: array&lt;u32&gt;;
+
+            struct VertexOutput {
+                @builtin(position) pos: vec4f,
+                @location(0) cell: u32,
+            };
+
+            @vertex
+            fn vertexMain(@location(0) pos: vec2f, @builtin(vertex_index) vertexIndex: u32) -&gt; VertexOutput {
+                var output: VertexOutput;
+                output.pos = vec4&lt;f32&gt;(pos, 0.0, 1.0);
+                output.cell = vertexIndex / 6;
+                return output;
+            }
+            @fragment
+            fn fragmentMain(input: VertexOutput) -&gt; vec4&lt;f32&gt; {
+                if(states[input.cell] == 0u) {
+                    discard;
+                }
+                return vec4&lt;f32&gt;(1.0, 1.0, 0.0, 1.0);
+            }
+        `
+    });
+}
+
+const getVertexBuffer = async (device: GPUDevice): Promise&lt;[GPUBuffer, GPUVertexBufferLayout]&gt; =&gt; {
+    const vertexBuffer = device.createBuffer({
+        size: grid_length * grid_length * 4 * 12,
+        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+        mappedAtCreation: true,
+    });
+    const vertices = new Float32Array(grid_length * grid_length * 12);
+    // starts from -1 to 1
+    const step = 2 / grid_length;
+    const padding = step / 6;
+    for(let i = 0; i &lt; grid_length; i++) {
+        for(let j = 0; j &lt; grid_length; j++) {
+            const top_left_x = -1 + i * step;
+            const top_left_y = 1 - j * step;
+            const bottom_right_x = top_left_x + step;
+            const bottom_right_y = top_left_y - step;
+            const index = (i * grid_length + j) * 12;
+
+            vertices[index] = top_left_x + padding;
+            vertices[index + 1] = top_left_y - padding;
+
+            vertices[index + 2] = bottom_right_x - padding;
+            vertices[index + 3] = top_left_y - padding;
+
+            vertices[index + 4] = top_left_x + padding;
+            vertices[index + 5] = bottom_right_y + padding;
+
+            vertices[index + 6] = top_left_x + padding;
+            vertices[index + 7] = bottom_right_y + padding;
+
+            vertices[index + 8] = bottom_right_x - padding;
+            vertices[index + 9] = top_left_y - padding;
+
+            vertices[index + 10] = bottom_right_x - padding;
+            vertices[index + 11] = bottom_right_y + padding;
+        }
+    }
+    new Float32Array(vertexBuffer.getMappedRange()).set(vertices);
+    const vertexBufferLayout: GPUVertexBufferLayout = {
+        arrayStride: 8,
+        attributes: [{
+            format: &quot;float32x2&quot;,
+            offset: 0,
+            shaderLocation: 0,
+        }],
+    };
+    vertexBuffer.unmap();
+    return [vertexBuffer, vertexBufferLayout];
+}
+
+const getComputationShaderModule = async (device: GPUDevice): Promise&lt;GPUShaderModule&gt; =&gt; {
+    return device.createShaderModule({
+        label: &quot;computation shader&quot;,
+        code: `
+            @group(0) @binding(0) var&lt;storage&gt; states: array&lt;u32&gt;;
+            @group(0) @binding(1) var&lt;storage, read_write&gt; next_states: array&lt;u32&gt;;
+
+            @compute
+            @workgroup_size(${workgroup_size}, ${workgroup_size})
+            fn computeMain(@builtin(global_invocation_id) cell: vec3u) {
+                let index = cell.x * ${grid_length} + cell.y;
+                var count = 0u;
+                for(var i: i32 = -1; i &lt; 2; i++) {
+                    for(var j: i32 = -1; j &lt; 2; j++) {
+                        if(i == 0 &amp;&amp; j == 0) {
+                            continue;
+                        }
+                        let x = i32(cell.x) + i;
+                        let y = i32(cell.y) + j;
+                        if(x &gt;= 0 &amp;&amp; x &lt; ${grid_length} &amp;&amp; y &gt;= 0 &amp;&amp; y &lt; ${grid_length}) {
+                            count += states[x * ${grid_length} + y];
+                        }
+                    }
+                }
+                if(states[index] == 1u) {
+                    if(count &lt; 2u || count &gt; 3u) {
+                        next_states[index] = 0u;
+                    } else {
+                        next_states[index] = 1u;
+                    }
+                } else {
+                    if(count == 3u) {
+                        next_states[index] = 1u;
+                    } else {
+                        next_states[index] = 0u;
+                    }
+                }
+            }
+        `
+    });
+}
+
+
+const main = async () =&gt; {
+    const [_, device] = (await requestDevice())!;
+    const [context, canvasFormat] = await getContext(device);
+    const shaderModule = await getShaderModule(device);
+    const [vertexBuffer, vertexBufferLayout] = await getVertexBuffer(device);
+    const states = new Uint32Array(grid_length * grid_length);
+    for(let i = 0; i &lt; grid_length * grid_length; i++) {
+        states[i] = Math.random() &gt; 0.25 ? 0 : 1;
+    }
+    const statesStorageBuffer = [
+        device.createBuffer({
+            size: grid_length * grid_length * 4,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+        }),
+        device.createBuffer({
+            size: grid_length * grid_length * 4,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+        })
+    ]
+    device.queue.writeBuffer(statesStorageBuffer[0], 0, states.buffer);
+    const bindGroupLayout = device.createBindGroupLayout({
+        entries: [{
+            binding: 0,
+            visibility: GPUShaderStage.FRAGMENT | GPUShaderStage.COMPUTE | GPUShaderStage.VERTEX,
+            buffer: {
+                type: &quot;read-only-storage&quot;
+            }
+        }, {
+            binding: 1,
+            visibility: GPUShaderStage.FRAGMENT | GPUShaderStage.COMPUTE,
+            buffer: {
+                type: &quot;storage&quot;
+            }
+        }]
+    });
+    const pipelineLayout = device.createPipelineLayout({
+        bindGroupLayouts: [bindGroupLayout]
+    });
+    const pipeline = device.createRenderPipeline({
+        label: &quot;pipeline&quot;,
+        layout: pipelineLayout,
+        vertex: {
+            module: shaderModule,
+            entryPoint: &quot;vertexMain&quot;,
+            buffers: [vertexBufferLayout]
+        },
+        fragment: {
+            module: shaderModule,
+            entryPoint: &quot;fragmentMain&quot;,
+            targets: [{
+                format: canvasFormat
+            }]
+        }
+    });
+    const computeShaderModule = await getComputationShaderModule(device);
+    const computePipeline = device.createComputePipeline({
+        layout: pipelineLayout,
+        compute: {
+            module: computeShaderModule,
+            entryPoint: &quot;computeMain&quot;
+        }
+    });
+    const render = async (step: number) =&gt; {
+        const encoder = device.createCommandEncoder();
+        const bindGroup = device.createBindGroup({
+            label: &quot;bind group&quot;,
+            layout: bindGroupLayout,
+            entries: [{
+                binding: 0,
+                resource: { buffer: statesStorageBuffer[step % 2] },
+            }, {
+                binding: 1,
+                resource: { buffer: statesStorageBuffer[(step + 1) % 2] },
+            }]
+        });
+
+        const pass = encoder.beginRenderPass({
+            colorAttachments: [{
+                view: context.getCurrentTexture().createView(),
+                loadOp: &quot;clear&quot;,
+                clearValue: { r: 0.1, g: 0.3, b: 0.6, a: 1.0 },
+                storeOp: &quot;store&quot;,
+            }]
+        });
+        pass.setPipeline(pipeline);
+        pass.setBindGroup(0, bindGroup);
+        pass.setVertexBuffer(0, vertexBuffer);
+        pass.draw(grid_length * grid_length * 6);
+        pass.end();
+
+        const computePass = encoder.beginComputePass();
+        computePass.setPipeline(computePipeline);
+        computePass.setBindGroup(0, bindGroup);
+        const factor = Math.floor(grid_length / workgroup_size);
+        computePass.dispatchWorkgroups(factor, factor)
+        computePass.end();
+
+        const commandBuffer = encoder.finish();
+        device.queue.submit([commandBuffer]);
+    }
+    let step = 0;
+    setInterval(() =&gt; {
+        render(step);
+        step++;
+        step = step % 2;
+    }, 500);
+}
+
+main()
+</code></pre>
+<p>Now you should see the game of life simulation running on the screen.</p>
+<p>Congratulations! You have successfully created a game of life simulation using WebGPU.</p>
+<p>If you are willing to observe the game of life simulation in a more detailed way, you can increase the grid length and workgroup size. However, keep in mind that the larger the grid length and workgroup size, the more computation is required, and it may slow down the simulation. However, GPU is powerful and can handle a large amount of computation. You can build a pure CPU version and see the great difference between the two.</p>
+<p>In the next chapter, we will learn about 3D models and how to render them using WebGPU.</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../js/jquery-3.6.0.min.js"></script>
+        <script src="../js/bootstrap.min.js"></script>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
